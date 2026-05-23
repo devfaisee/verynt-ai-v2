@@ -1,153 +1,206 @@
 /**
  * Tools Registry: Central catalog of all tools with metadata
- * Used for navigation, categorization, and tool management
+ * Perfectly synced with the Verynt Master Blueprint and AI Document Toolbox features.
  */
-
-// Audio Tools
-import WhisperTool from './audio/WhisperTool';
-import VoiceForgeTool from './audio/VoiceForgeTool';
-// import AudioScribeTool from './audio/AudioScribeTool';
-
-// Document Tools
-// import RedactTool from './documents/RedactTool';
-// import DocuChatTool from './documents/DocuChatTool';
-// import PDFMergeTool from './documents/PDFMergeTool';
-// import PDFCompressTool from './documents/PDFCompressTool';
-// import PDFConverterTool from './documents/PDFConverterTool';
-// import PDFExtractorTool from './documents/PDFExtractorTool';
-
-// Image Tools
-// import ClearTool from './images/ClearTool';
-// import ScaleTool from './images/ScaleTool';
-// import ImageCompressTool from './images/ImageCompressTool';
-// import HEICConverterTool from './images/HEICConverterTool';
-
-// OCR Tools
-// import OCRTool from './ocr/OCRTool';
-// import ReceiptScannerTool from './ocr/ReceiptScannerTool';
-// import IDScannerTool from './ocr/IDScannerTool';
-// import HandwritingTool from './ocr/HandwritingTool';
-
-// Writing Tools
-// import ScribbleTool from './writing/ScribbleTool';
-// import GrammarFixerTool from './writing/GrammarFixerTool';
-// import ResumeTool from './writing/ResumeTool';
-// import EmailComposerTool from './writing/EmailComposerTool';
-// import TranslatorTool from './writing/TranslatorTool';
-
-// Student Tools
-// import FlashcardGenTool from './student/FlashcardGenTool';
-// import QuizGenTool from './student/QuizGenTool';
-// import MathSolverTool from './student/MathSolverTool';
-// import CitationGenTool from './student/CitationGenTool';
-
-// Developer Tools
-// import JSONFormatterTool from './developer/JSONFormatterTool';
-// import RegexGenTool from './developer/RegexGenTool';
-// import SQLFormatterTool from './developer/SQLFormatterTool';
-// import APIBuilderTool from './developer/APIBuilderTool';
-// import CodeExplainerTool from './developer/CodeExplainerTool';
-
-// Translation Tools
-// import PDFTranslatorTool from './translation/PDFTranslatorTool';
-// import SubtitleTranslatorTool from './translation/SubtitleTranslatorTool';
-// import ScreenshotTranslatorTool from './translation/ScreenshotTranslatorTool';
 
 import {
   FileAudio,
   FileText,
-  Image,
+  Image as ImageIcon,
   Scan,
   PenTool,
   BookOpen,
   Code,
   Languages,
-  Zap
+  Zap,
+  Eye,
+  Volume2,
+  Mic,
+  Scissors,
+  Maximize,
+  Search,
+  CheckCircle,
+  GraduationCap,
+  Briefcase,
+  Globe,
+  Terminal,
+  Eraser,
+  TrendingUp,
+  ShieldCheck,
+  Filter
 } from 'lucide-react';
 
 export const TOOLS_REGISTRY = [
-  // AUDIO TOOLS (3)
+  // --- CATEGORY A: AUDIO & SPEECH ---
   {
     id: 'whisper',
-    name: 'Whisper',
-    description: 'Speech-to-text transcription with timestamps',
+    name: 'Verynt Whisper',
+    description: 'High-accuracy speech-to-text transcription with local timestamps.',
     category: 'audio',
     icon: FileAudio,
-    component: WhisperTool,
     isPro: false,
     models: ['whisper-tiny', 'whisper-base'],
-    tags: ['transcription', 'audio', 'offline', 'privacy']
+    tags: ['transcription', 'audio', 'offline']
   },
   {
     id: 'voiceforge',
-    name: 'VoiceForge',
-    description: 'Natural text-to-speech synthesis',
+    name: 'Verynt VoiceForge',
+    description: 'Natural text-to-speech synthesis with custom pitch and rate controls.',
     category: 'audio',
-    icon: FileAudio,
-    component: VoiceForgeTool,
+    icon: Volume2,
     isPro: false,
     models: ['speecht5-tts'],
-    tags: ['text-to-speech', 'audio', 'offline']
+    tags: ['tts', 'audio', 'reader']
   },
-  // {
-  //   id: 'audioscribe',
-  //   name: 'AudioScribe',
-  //   description: 'Meeting transcription & summarization',
-  //   category: 'audio',
-  //   icon: FileAudio,
-  //   component: AudioScribeTool,
-  //   isPro: false,
-  //   models: ['whisper-base', 'gemma-2b'],
-  //   tags: ['meeting', 'summary', 'actionitems']
-  // },
+  {
+    id: 'audioscribe',
+    name: 'Verynt AudioScribe',
+    description: 'Meeting transcription & summarization into Jira/Notion templates.',
+    category: 'audio',
+    icon: Mic,
+    isPro: false,
+    models: ['whisper-base', 'gemma-2b'],
+    tags: ['meeting', 'summary', 'productivity']
+  },
 
-  // DOCUMENT TOOLS (6)
-  // {
-  //   id: 'redact',
-  //   name: 'Redact',
-  //   description: 'PII detection & masking',
-  //   category: 'documents',
-  //   icon: FileText,
-  //   component: RedactTool,
-  //   isPro: false,
-  //   models: ['bert-base-ner'],
-  //   tags: ['privacy', 'pii', 'security']
-  // },
-  // ... more document tools
+  // --- CATEGORY B: TEXT & DOCUMENTS ---
+  {
+    id: 'redact',
+    name: 'Verynt Redact',
+    description: 'Smart offline PII masker for emails, names, and credit cards.',
+    category: 'documents',
+    icon: Eye,
+    isPro: false,
+    models: ['bert-base-ner'],
+    tags: ['privacy', 'security', 'pii']
+  },
+  {
+    id: 'docuchat',
+    name: 'Verynt DocuChat',
+    description: 'Interactive PDF chat and semantic search using local vector DB.',
+    category: 'documents',
+    icon: FileText,
+    isPro: false,
+    models: ['minilm-l6-v2', 'llama-3-8b'],
+    tags: ['pdf', 'chat', 'search']
+  },
+  {
+    id: 'scribble',
+    name: 'Verynt Scribble',
+    description: 'AI writer and rephraser with tone and length adjustments.',
+    category: 'documents',
+    icon: PenTool,
+    isPro: false,
+    models: ['lamini-flan-t5'],
+    tags: ['writing', 'rephrase', 'editor']
+  },
+  {
+    id: 'pdf-tools',
+    name: 'PDF Power Tools',
+    description: 'Merge, split, compress, and rotate PDFs entirely in-browser.',
+    category: 'documents',
+    icon: Scissors,
+    isPro: false,
+    tags: ['pdf', 'utility', 'offline']
+  },
 
-  // IMAGE TOOLS (4)
-  // ...
+  // --- CATEGORY C: IMAGES & GRAPHICS ---
+  {
+    id: 'clear',
+    name: 'Verynt Clear',
+    description: 'AI background remover and object eraser with high-res export.',
+    category: 'images',
+    icon: ImageIcon,
+    isPro: false,
+    models: ['bria-rmbg-1.4'],
+    tags: ['vision', 'edit', 'bg-removal']
+  },
+  {
+    id: 'scale',
+    name: 'Verynt Scale',
+    description: 'Image super-resolution upscaler up to 4x sharpening.',
+    category: 'images',
+    icon: Maximize,
+    isPro: false,
+    models: ['esrgan-light'],
+    tags: ['vision', 'upscale', 'enhance']
+  },
+  {
+    id: 'ocr',
+    name: 'Verynt OCR',
+    description: 'Extract structured text from scans and receipts with 99% accuracy.',
+    category: 'images',
+    icon: Search,
+    isPro: false,
+    models: ['tesseract'],
+    tags: ['ocr', 'vision', 'extraction']
+  },
 
-  // OCR TOOLS (4)
-  // ...
+  // --- CATEGORY D: STUDENT & ACADEMIC ---
+  {
+    id: 'student-hub',
+    name: 'Student Hub',
+    description: 'Flashcard generators, quiz creators, and citation builders.',
+    category: 'student',
+    icon: GraduationCap,
+    isPro: false,
+    tags: ['study', 'academic', 'flashcards']
+  },
+  {
+    id: 'math-solver',
+    name: 'Math AI Solver',
+    description: 'Solve equations and graph functions locally with step-by-step logic.',
+    category: 'student',
+    icon: TrendingUp,
+    isPro: true,
+    tags: ['math', 'solver', 'academic']
+  },
 
-  // WRITING TOOLS (5)
-  // ...
+  // --- CATEGORY E: DEVELOPER UTILITIES ---
+  {
+    id: 'dev-utils',
+    name: 'Developer Utilities',
+    description: 'JSON formatters, Regex builders, and SQL compilers.',
+    category: 'developer',
+    icon: Terminal,
+    isPro: false,
+    tags: ['dev', 'utility', 'json']
+  },
+  {
+    id: 'code-explainer',
+    name: 'Code Explainer',
+    description: 'Local AI code analysis and error explanation.',
+    category: 'developer',
+    icon: Code,
+    isPro: true,
+    models: ['qwen-0.5b'],
+    tags: ['dev', 'ai', 'debugging']
+  },
 
-  // STUDENT TOOLS (4)
-  // ...
-
-  // DEVELOPER TOOLS (5)
-  // ...
-
-  // TRANSLATION TOOLS (3)
-  // ...
+  // --- CATEGORY F: TRANSLATION ---
+  {
+    id: 'translator',
+    name: 'Verynt Translator',
+    description: 'Multi-language offline translator for documents and text.',
+    category: 'translation',
+    icon: Languages,
+    isPro: false,
+    models: ['multilingual-t5'],
+    tags: ['translation', 'multilingual', 'offline']
+  }
 ];
 
-export const TOOLS_BY_CATEGORY = {
-  audio: TOOLS_REGISTRY.filter((t) => t.category === 'audio'),
-  documents: TOOLS_REGISTRY.filter((t) => t.category === 'documents'),
-  images: TOOLS_REGISTRY.filter((t) => t.category === 'images'),
-  ocr: TOOLS_REGISTRY.filter((t) => t.category === 'ocr'),
-  writing: TOOLS_REGISTRY.filter((t) => t.category === 'writing'),
-  student: TOOLS_REGISTRY.filter((t) => t.category === 'student'),
-  developer: TOOLS_REGISTRY.filter((t) => t.category === 'developer'),
-  translation: TOOLS_REGISTRY.filter((t) => t.category === 'translation')
-};
+export const CATEGORIES = [
+  { id: 'audio', name: 'Audio & Speech', icon: FileAudio },
+  { id: 'documents', name: 'Text & Documents', icon: FileText },
+  { id: 'images', name: 'Images & Graphics', icon: ImageIcon },
+  { id: 'student', name: 'Student Tools', icon: GraduationCap },
+  { id: 'developer', name: 'Developer Tools', icon: Terminal },
+  { id: 'translation', name: 'Translation', icon: Languages }
+];
 
 export const getToolById = (id) => TOOLS_REGISTRY.find((t) => t.id === id);
-export const getToolsByCategory = (category) => TOOLS_BY_CATEGORY[category] || [];
+export const getToolsByCategory = (category) => TOOLS_REGISTRY.filter((t) => t.category === category);
 export const getAllTools = () => TOOLS_REGISTRY;
-export const getToolCount = () => TOOLS_REGISTRY.length;
 
 export default TOOLS_REGISTRY;

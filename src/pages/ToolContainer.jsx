@@ -1,25 +1,25 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import WhisperTool from '../tools/whisper/WhisperTool';
-import RedactTool from '../tools/redact/RedactTool';
-import DocuChatTool from '../tools/docuchat/DocuChatTool';
-import ClearTool from '../tools/clear/ClearTool';
-import DevTools from '../tools/developer/DevTools';
-import StudentTools from '../tools/student/StudentTools';
-import OCRTool from '../tools/ocr/OCRTool';
-import PDFTools from '../tools/documents/PDFTools';
 import { useApp } from '../context/AppContext';
 import SEO from '../components/SEO';
+import { getToolById } from '../tools/REGISTRY';
+import { Loader2 } from 'lucide-react';
 
-const toolMeta = {
-  whisper: { title: 'Whisper Transcription', description: 'Transcribe audio and video files locally with high accuracy using Verynt Whisper.' },
-  pdf: { title: 'DocuChat', description: 'Chat with your PDF documents and extract summaries entirely offline.' },
-  'pdf-tools': { title: 'PDF Power Tools', description: 'Merge and split PDF files in-browser with total privacy.' },
-  ocr: { title: 'OCR Scanner', description: 'Extract text from images and screenshots locally using Verynt OCR.' },
-  redact: { title: 'Redaction Tool', description: 'Securely mask sensitive PII data in your documents before sharing.' },
-  clear: { title: 'Background Remover', description: 'Remove and replace image backgrounds locally with AI.' },
-  student: { title: 'Student Hub', description: 'Generate flashcards and summaries for your study materials.' },
-  developer: { title: 'Dev Utilities', description: 'Essential developer tools for JSON, Base64, and Regex.' },
+// Lazy load tool components based on the registry structure
+const toolComponents = {
+  whisper: lazy(() => import('../tools/audio/WhisperTool')),
+  voiceforge: lazy(() => import('../tools/audio/VoiceForgeTool')),
+  audioscribe: lazy(() => import('../tools/audio/AudioScribeTool')),
+  redact: lazy(() => import('../tools/documents/RedactTool')),
+  docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
+  scribble: lazy(() => import('../tools/documents/ScribbleTool')),
+  'pdf-tools': lazy(() => import('../tools/documents/PDFTools')),
+  clear: lazy(() => import('../tools/images/ClearTool')),
+  scale: lazy(() => import('../tools/images/ScaleTool')),
+  ocr: lazy(() => import('../tools/images/OCRTool')),
+  'student-hub': lazy(() => import('../tools/student/StudentTools')),
+  'dev-utils': lazy(() => import('../tools/developer/DevTools')),
+  translator: lazy(() => import('../tools/translation/TranslatorTool'))
 };
 
 export default function ToolContainer() {
@@ -27,61 +27,70 @@ export default function ToolContainer() {
   const navigate = useNavigate();
   const { incrementUsage, triggerLoader } = useApp();
 
-  const [summaryText, setSummaryText] = React.useState('');
+  const toolMetadata = getToolById(toolId);
+  const ToolComponent = toolComponents[toolId];
 
-  const meta = toolMeta[toolId] || { title: 'AI Tool', description: 'Private, local AI tool by Verynt.' };
-
-  const renderTool = () => {
-    switch (toolId) {
-      case 'whisper':
-        return (
-          <WhisperTool 
-            incrementUsage={incrementUsage} 
-            triggerLoader={triggerLoader}
-            setSummaryText={setSummaryText}
-            selectTab={(tab) => navigate(`/tool/${tab}`)}
-          />
-        );
-      case 'pdf':
-        return (
-          <DocuChatTool 
-            incrementUsage={incrementUsage} 
-            triggerLoader={triggerLoader}
-            summaryText={summaryText}
-            setSummaryText={setSummaryText}
-          />
-        );
-      case 'pdf-tools':
-        return <PDFTools />;
-      case 'ocr':
-        return <OCRTool />;
-      case 'redact':
-        return <RedactTool incrementUsage={incrementUsage} />;
-      case 'clear':
-        return <ClearTool incrementUsage={incrementUsage} triggerLoader={triggerLoader} />;
-      case 'developer':
-        return <DevTools incrementUsage={incrementUsage} />;
-      case 'student':
-        return <StudentTools incrementUsage={incrementUsage} />;
-      default:
-        return <div className="text-white">Tool not found</div>;
-    }
-  };
+  if (!toolMetadata || !ToolComponent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <h2 className="text-2xl font-bold text-white">Tool Not Found</h2>
+        <button onClick={() => navigate('/')} className="btn-ghost">Back to Dashboard</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="glass-panel p-6 rounded-3xl relative overflow-hidden space-y-6">
-      <SEO title={meta.title} description={meta.description} />
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <SEO title={toolMetadata.name} description={toolMetadata.description} />
       
-      {/* Action Return Header */}
-      <button 
-        onClick={() => navigate('/')}
-        className="text-xs text-gray-400 hover:text-white flex items-center gap-1 bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 transition-colors"
-      >
-        ← Back to Hub Dashboard
-      </button>
+      {/* Tool Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/')}
+            className="p-2 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
+          >
+            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+          </button>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <toolMetadata.icon className="w-8 h-8 text-[#00f2fe]" />
+              {toolMetadata.name}
+            </h1>
+            <p className="text-slate-400 font-medium">{toolMetadata.description}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {toolMetadata.tags.map(tag => (
+            <span key={tag} className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
 
-      {/* Active Workspace Component Routing */}
-      {renderTool()}
+      {/* Workspace */}
+      <div className="glass-panel p-8 min-h-[600px]">
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+            <Loader2 className="w-10 h-10 text-[#00f2fe] animate-spin" />
+            <p className="text-slate-500 font-bold uppercase tracking-tighter">Initializing Module...</p>
+          </div>
+        }>
+          <ToolComponent 
+            incrementUsage={incrementUsage} 
+            triggerLoader={triggerLoader}
+          />
+        </Suspense>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="text-center p-6 border-t border-white/5">
+        <p className="text-xs text-slate-600 font-medium">
+          Processing is performed entirely in your browser buffer. Data is never transmitted to Verynt servers.
+        </p>
+      </div>
     </div>
   );
 }

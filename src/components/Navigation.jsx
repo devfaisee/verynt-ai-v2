@@ -21,13 +21,13 @@ export default function Navigation() {
 
         {/* Desktop Navigation Links */}
         <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-400">
+          <Link to="/" className="hover:text-white transition-colors">Explorer</Link>
           <a href="#" className="hover:text-white transition-colors">Privacy</a>
-          <a href="#" className="hover:text-white transition-colors">Enterprise</a>
           <a href="#" className="hover:text-white transition-colors">API</a>
           <div className="h-4 w-[1px] bg-white/10" />
           <div className="flex items-center gap-2 text-emerald-400">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            V3.0 Live
+            Node Active
           </div>
         </div>
 
@@ -43,13 +43,13 @@ export default function Navigation() {
             }`}
           >
             {isOffline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
-            {isOffline ? 'OFFLINE MODE' : 'ONLINE MODE'}
+            {isOffline ? 'OFFLINE' : 'ONLINE'}
           </button>
 
           {/* Pricing CTA */}
           <button 
             onClick={() => setIsPricingOpen(true)}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-2 h-10 px-6"
           >
             <Award className="w-4 h-4" />
             Upgrade

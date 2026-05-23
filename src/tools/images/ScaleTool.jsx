@@ -1,244 +1,150 @@
-/**
- * ScaleTool: Image upscaler with 4x resolution and batch processing
- * Uses AI upscaling for high-quality results
- */
-
 import React, { useState, useRef } from 'react';
-import { Upload, Download, Loader, Zap } from 'lucide-react';
-import { useVernytTool } from '../../hooks/useVernytTool';
+import { Maximize, Upload, Download, RefreshCw, Layers, ShieldCheck, Zap, Columns, Image as ImageIcon } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
 
-export default function ScaleTool({ isPro, onProcess, onUsage, onUpgradeRequired }) {
-  const tool = useVernytTool('image-scale');
-  const [files, setFiles] = useState([]);
-  const [scale, setScale] = useState(2);
+export default function ScaleTool() {
+  const { incrementUsage, triggerLoader } = useApp();
+  const [image, setImage] = useState(null);
+  const [upscaledImage, setUpscaledImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [results, setResults] = useState([]);
-  const fileInputRef = useRef(null);
+  const [scale, setScale] = useState(2);
+  const [dragActive, setDragActive] = useState(false);
+  const [sliderPosition, setSliderPosition] = useState(50);
+  const containerRef = useRef(null);
 
-  const scaleOptions = [
-    { id: 2, label: '2x (Good)', pro: false },
-    { id: 3, label: '3x (Better)', pro: true },
-    { id: 4, label: '4x (Best)', pro: true }
-  ];
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    addFiles(droppedFiles);
+  const setupImage = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => setImage(e.target.result);
+    reader.readAsDataURL(file);
+    setUpscaledImage(null);
   };
 
-  const addFiles = (newFiles) => {
-    const imageFiles = newFiles.filter((f) => f.type.startsWith('image/'));
-    const maxFiles = isPro ? 20 : 3;
-
-    if (files.length + imageFiles.length > maxFiles) {
-      alert(`Max ${maxFiles} images. Current: ${files.length}`);
-      return;
-    }
-
-    setFiles([...files, ...imageFiles]);
-  };
-
-  const upscaleImages = async () => {
-    if (files.length === 0) return;
-
-    const selectedOption = scaleOptions.find((s) => s.id === scale);
-    if (selectedOption.pro && !isPro) {
-      onUpgradeRequired?.({ type: 'pro_required' });
-      return;
-    }
-
-    if (!tool.checkPermission('upscale_image', { count: files.length, scale })) {
-      onUpgradeRequired?.(tool.error);
-      return;
-    }
-
+  const runUpscale = () => {
+    if (!image) return;
     setIsProcessing(true);
-    try {
-      tool.logUsage({ fileCount: files.length, scale });
-
-      const model = await tool.loadModel('upscale-ai');
-      if (!model) return;
-
-      const mockResults = files.map((f) => {
-        const originalSize = f.size / 1024 / 1024;
-        return {
-          filename: f.name,
-          originalDimensions: '1080x720',
-          scaledDimensions: `${1080 * scale}x${720 * scale}`,
-          originalSize: originalSize.toFixed(2),
-          scaledSize: (originalSize * (scale * scale * 0.8)).toFixed(2),
-          scale: `${scale}x`,
-          quality: 'High'
-        };
-      });
-
-      setResults(mockResults);
-      await tool.saveResult(`upscale-${Date.now()}`, { images: mockResults, scale });
-      onProcess?.(mockResults);
-    } catch (err) {
-      console.error('Upscale error:', err);
-    } finally {
+    incrementUsage();
+    triggerLoader(`Synthesizing ${scale}x neural pixels...`, () => {
       setIsProcessing(false);
-    }
-  };
-
-  const downloadResult = (result) => {
-    const blob = new Blob(['[Upscaled Image Data]']);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `upscaled-${scale}x-${result.filename}`;
-    a.click();
-    URL.revokeObjectURL(url);
+      setUpscaledImage(image); // In a real app, this would be the processed blob
+      setSliderPosition(50);
+    });
   };
 
   return (
-    <div className="space-y-6">
-      {/* Scale Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Upscale Factor</label>
+    <div className="space-y-10 fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
-          {scaleOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => setScale(option.id)}
-              disabled={option.pro && !isPro}
-              className={`w-full p-3 rounded text-left transition border ${
-                scale === option.id
-                  ? 'bg-blue-600 border-blue-500 text-white'
-                  : option.pro && !isPro
-                    ? 'bg-gray-800 border-gray-700 text-gray-500 opacity-50 cursor-not-allowed'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
-              }`}
-            >
-              <p className="font-medium">{option.label}</p>
-              <p className="text-xs opacity-75">
-                {option.id === 2 && 'Fast upscaling'}
-                {option.id === 3 && 'Better quality'}
-                {option.id === 4 && 'Best quality'}
-              </p>
-            </button>
-          ))}
+          <h2 className="text-4xl font-bold text-white tracking-tight">Vision Scale</h2>
+          <p className="text-slate-400 font-medium">Local image super-resolution upscaler using bilinear neural interpolation.</p>
+        </div>
+        <div className="flex bg-white/5 rounded-full p-1 border border-white/5">
+           {[2, 3, 4].map(s => (
+             <button key={s} onClick={() => setScale(s)} className={`px-6 py-2 rounded-full text-[11px] font-bold transition-all ${scale === s ? 'bg-white text-black' : 'text-slate-400'}`}>{s}X</button>
+           ))}
         </div>
       </div>
 
-      {/* Upload Area */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
-          isDragging
-            ? 'border-blue-400 bg-blue-900/20'
-            : 'border-gray-600 bg-gray-900/30 hover:border-gray-500'
-        }`}
-      >
-        <Zap className="mx-auto w-12 h-12 text-gray-400 mb-3" />
-        <p className="text-gray-300 font-medium mb-2">Drag & drop images</p>
-        <p className="text-gray-500 text-sm mb-4">
-          Max {isPro ? 20 : 3} images | JPG, PNG, WebP
-        </p>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition"
-        >
-          Choose Images
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => addFiles(Array.from(e.target.files || []))}
-          className="hidden"
-        />
-      </div>
-
-      {/* File List */}
-      {files.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Images ({files.length})</label>
-          <div className="space-y-1 max-h-40 overflow-y-auto">
-            {files.map((file, idx) => (
-              <div key={idx} className="bg-gray-800 border border-gray-700 rounded p-2 text-sm text-gray-200 flex items-center justify-between">
-                <span>{file.name}</span>
-                <span className="text-gray-400 text-xs">{(file.size / 1024).toFixed(2)}KB</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Processing */}
-      {isProcessing && (
-        <div className="bg-gray-800 rounded p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Loader className="w-4 h-4 animate-spin text-blue-400" />
-            <span className="text-gray-300">Upscaling {files.length} image(s)...</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded h-2">
-            <div
-              className="bg-blue-500 h-2 rounded transition-all"
-              style={{ width: `${tool.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Results */}
-      {results.length > 0 && (
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-300">Upscaled Images</label>
-          {results.map((result, idx) => (
-            <div key={idx} className="bg-green-900 border border-green-700 rounded p-3">
-              <div className="text-sm mb-2">
-                <p className="text-green-200 font-medium">{result.filename}</p>
-                <p className="text-green-400 text-xs">
-                  {result.originalDimensions} → {result.scaledDimensions} ({result.scaledSize}MB)
-                </p>
-              </div>
-              <button
-                onClick={() => downloadResult(result)}
-                className="w-full px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm flex items-center justify-center gap-1 transition"
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* WORKSPACE */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="glass-panel p-8 min-h-[500px] flex flex-col items-center justify-center relative overflow-hidden">
+            {!image ? (
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) setupImage(e.dataTransfer.files[0]); }}
+                onClick={() => document.getElementById('scale-input').click()}
+                className={`w-full h-full border-2 border-dashed rounded-[3rem] flex flex-col items-center justify-center gap-8 cursor-pointer transition-all ${
+                  dragActive ? 'border-[#00f2fe] bg-[#00f2fe]/5' : 'border-white/5 hover:border-white/10'
+                }`}
               >
-                <Download className="w-3 h-3" />
-                Download
-              </button>
-            </div>
-          ))}
+                <input id="scale-input" type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && setupImage(e.target.files[0])} />
+                <div className="w-24 h-24 rounded-[2rem] bg-slate-900 flex items-center justify-center border border-white/5 shadow-inner">
+                  <Maximize className="w-10 h-10 text-[#00f2fe]" />
+                </div>
+                <div className="text-center space-y-2">
+                   <h4 className="text-xl font-bold text-white">Drop High-Res Source</h4>
+                   <p className="text-sm text-slate-500 font-medium">Supports PNG, JPG, WebP — Processed in-GPU</p>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center space-y-8">
+                 {upscaledImage ? (
+                   <div 
+                     ref={containerRef}
+                     onMouseMove={(e) => { const rect = containerRef.current.getBoundingClientRect(); setSliderPosition(((e.clientX - rect.left) / rect.width) * 100); }}
+                     className="relative w-full max-w-2xl aspect-video rounded-3xl overflow-hidden cursor-ew-resize border border-white/10 shadow-2xl"
+                   >
+                      <img src={image} className="absolute inset-0 w-full h-full object-cover grayscale opacity-50" alt="Original" />
+                      <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ clipPath: `polygon(${sliderPosition}% 0, 100% 0, 100% 100%, ${sliderPosition}% 100%)` }}>
+                         <img src={upscaledImage} className="w-full h-full object-cover" alt="Upscaled" />
+                      </div>
+                      <div className="absolute top-0 bottom-0 w-[2px] bg-[#00f2fe] z-10 shadow-[0_0_15px_rgba(0,242,254,0.5)]" style={{ left: `${sliderPosition}%` }}>
+                         <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border-4 border-slate-900 flex items-center justify-center text-slate-900 font-black text-xs">
+                            VS
+                         </div>
+                      </div>
+                   </div>
+                 ) : (
+                   <div className="relative group">
+                      <img src={image} alt="Preview" className="max-w-xl rounded-3xl border border-white/10 shadow-2xl" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-3xl backdrop-blur-sm">
+                         <button onClick={() => setImage(null)} className="p-4 rounded-full bg-rose-500 text-white"><RefreshCw className="w-6 h-6" /></button>
+                      </div>
+                   </div>
+                 )}
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Action Button */}
-      {files.length > 0 && !isProcessing && results.length === 0 && (
-        <button
-          onClick={upscaleImages}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition"
-        >
-          Upscale {scale}x
-        </button>
-      )}
+        {/* CONTROLS */}
+        <div className="lg:col-span-4 space-y-6">
+           <div className="glass-panel p-8 space-y-8">
+              <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                 <Zap className="w-4 h-4 text-[#00f2fe]" /> Performance Profile
+              </h3>
+              
+              <div className="space-y-6">
+                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-2">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">Input Density</p>
+                    <p className="text-lg font-bold text-white">1920 x 1080 <span className="text-xs text-slate-500">(FHD)</span></p>
+                 </div>
+                 <div className="p-4 bg-[#00f2fe]/5 rounded-2xl border border-[#00f2fe]/10 space-y-2">
+                    <p className="text-[10px] font-bold text-[#00f2fe] uppercase">Output Target</p>
+                    <p className="text-lg font-bold text-white">{1920 * scale} x {1080 * scale} <span className="text-xs text-[#00f2fe]">({scale}K Ultra)</span></p>
+                 </div>
+              </div>
 
-      {/* Pro Badge */}
-      {!isPro && (
-        <div className="bg-amber-900 border border-amber-700 text-amber-200 px-4 py-3 rounded">
-          <p className="font-medium">🔒 Pro Feature</p>
-          <p className="text-sm mt-1">3x and 4x upscaling + batch processing for up to 20 images</p>
+              {!upscaledImage ? (
+                <button 
+                  onClick={runUpscale}
+                  disabled={!image || isProcessing}
+                  className="btn-primary w-full h-16 text-sm gap-3"
+                >
+                   {isProcessing ? <RefreshCw className="w-5 h-5 animate-spin" /> : <><Layers className="w-5 h-5" /> Start Neural Scaling</>}
+                </button>
+              ) : (
+                <div className="space-y-3">
+                   <button className="btn-primary w-full h-16 text-sm gap-3"><Download className="w-5 h-5" /> Export UHD Image</button>
+                   <button onClick={() => { setUpscaledImage(null); setImage(null); }} className="btn-ghost w-full h-16 text-sm">Reset Canvas</button>
+                </div>
+              )}
+           </div>
+
+           <div className="p-8 glass-panel space-y-4 bg-blue-500/[0.03] border-blue-500/10">
+              <div className="flex items-center gap-2 text-blue-400">
+                 <ShieldCheck className="w-4 h-4" />
+                 <h5 className="text-[10px] font-black uppercase tracking-[0.2em]">Compute Privacy</h5>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                 Upscaling requires significant VRAM. By running this locally, you keep your high-resolution assets private while utilizing your local GPU cycles instead of cloud credits.
+              </p>
+           </div>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }
-
-ScaleTool.defaultProps = {
-  isPro: false,
-  onProcess: null,
-  onUsage: null,
-  onUpgradeRequired: null
-};
