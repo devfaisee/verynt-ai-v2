@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, Download, Play, Pause, RefreshCw, Settings, ShieldCheck, AudioLines } from 'lucide-react';
+import { Volume2, Download, Play, Pause, RefreshCw, Settings, ShieldCheck, AudioLines, Mic2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function VoiceForgeTool() {
   const { incrementUsage, triggerLoader } = useApp();
@@ -48,102 +49,96 @@ export default function VoiceForgeTool() {
   };
 
   return (
-    <div className="space-y-10 fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <h2 className="text-4xl font-bold text-white tracking-tight">VoiceForge TTS</h2>
-          <p className="text-slate-400 font-medium">Neural text-to-speech synthesis with zero server latency.</p>
-        </div>
-        <div className="flex items-center gap-2 text-[11px] font-bold text-[#00f2fe] bg-[#00f2fe]/5 px-4 py-2 rounded-full border border-[#00f2fe]/10 uppercase tracking-widest">
-           <AudioLines className="w-3.5 h-3.5" /> High-Fidelity Synthesis
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-10">
+         <div className="space-y-4">
+            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Acoustic Persona</h3>
+            <div className="glass-card p-8 space-y-8">
+               <div className="space-y-4">
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center">Synthesis Voice</p>
+                  <select 
+                    value={selectedVoice} 
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold text-white outline-none focus:border-white/20 transition-all appearance-none cursor-pointer"
+                  >
+                    {voices.map(v => <option key={v.name} value={v.name} className="bg-slate-900">{v.name} ({v.lang})</option>)}
+                  </select>
+               </div>
+
+               <div className="space-y-8 pt-4 border-t border-white/5">
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        <span>Pitch Control</span>
+                        <span className="text-white">{pitch.toFixed(1)}x</span>
+                     </div>
+                     <input type="range" min="0.5" max="2.0" step="0.1" value={pitch} onChange={(e) => setPitch(parseFloat(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-white cursor-ew-resize" />
+                  </div>
+
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        <span>Cadence Flow</span>
+                        <span className="text-white">{rate.toFixed(1)}x</span>
+                     </div>
+                     <input type="range" min="0.5" max="3.0" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-white cursor-ew-resize" />
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div className="p-8 bg-[#00f2fe]/5 border border-[#00f2fe]/10 rounded-[32px] space-y-4">
+            <div className="flex items-center gap-3 text-[#00f2fe]">
+               <ShieldCheck className="w-5 h-5" />
+               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Privacy Shield</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">Voice synthesis is executed using your OS native TTS layer. Audio buffers are generated in-memory and never leave the browser sandbox.</p>
+         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* INPUT */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="glass-panel p-8 space-y-6">
-             <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Script Input</h3>
-                <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-1 rounded border border-white/5">{text.length} Characters</span>
-             </div>
-             <textarea 
-               value={text} 
-               onChange={(e) => setText(e.target.value)} 
-               className="w-full h-[300px] bg-slate-950 border border-white/5 rounded-2xl p-8 text-xl text-slate-300 font-medium focus:outline-none focus:border-[#00f2fe]/20 transition-all resize-none leading-relaxed"
-               placeholder="Enter the text you want to convert to voice..."
-             />
-             
-             <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                <div className="flex items-center gap-4">
-                   <button 
-                     onClick={isPlaying ? stop : speak} 
-                     className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isPlaying ? 'bg-rose-500 text-white animate-pulse' : 'bg-white text-black hover:scale-110'}`}
-                   >
-                     {isPlaying ? <Pause className="w-6 h-6 fill-white" /> : <Play className="w-6 h-6 fill-black ml-1" />}
-                   </button>
-                   <div className="space-y-1">
-                      <p className="text-sm font-bold text-white uppercase tracking-tighter">{isPlaying ? "Synthesis Active" : "Ready to Generate"}</p>
-                      <p className="text-[10px] text-slate-500 font-medium uppercase">Using Browser Neural Buffer</p>
-                   </div>
-                </div>
-                <button className="btn-ghost h-12 gap-2 text-xs">
-                   <Download className="w-4 h-4" /> Export Audio
-                </button>
-             </div>
-          </div>
-        </div>
+      {/* Studio Workspace (Right) */}
+      <div className="lg:col-span-8">
+         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <AudioLines className="w-5 h-5 text-slate-400" />
+                  <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Script Master</span>
+               </div>
+               <button onClick={() => setText('')} className="text-[10px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest transition-colors">Flush Script</button>
+            </div>
 
-        {/* CONTROLS */}
-        <div className="lg:col-span-4 space-y-6">
-           <div className="glass-panel p-8 space-y-8">
-              <h4 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                 <Settings className="w-4 h-4 text-slate-400" /> Voice Profile
-              </h4>
-              
-              <div className="space-y-6">
-                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Select Persona</label>
-                    <select 
-                      value={selectedVoice} 
-                      onChange={(e) => setSelectedVoice(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white focus:outline-none"
-                    >
-                      {voices.map(v => <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>)}
-                    </select>
-                 </div>
+            <div className="flex-1 p-12 relative group">
+               <textarea 
+                 value={text} 
+                 onChange={(e) => setText(e.target.value)} 
+                 className="w-full h-full bg-transparent border-none text-2xl text-slate-300 font-medium focus:outline-none resize-none leading-relaxed tracking-tight"
+                 placeholder="Enter the signal stream to be synthesized..."
+               />
+               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20 pointer-events-none" />
+            </div>
 
-                 <div className="space-y-4">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
-                       <span>Pitch Shift</span>
-                       <span className="text-white">{pitch}x</span>
-                    </div>
-                    <input type="range" min="0.5" max="2.0" step="0.1" value={pitch} onChange={(e) => setPitch(parseFloat(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-[#00f2fe]" />
-                 </div>
-
-                 <div className="space-y-4">
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase">
-                       <span>Flow Rate</span>
-                       <span className="text-white">{rate}x</span>
-                    </div>
-                    <input type="range" min="0.5" max="3.0" step="0.1" value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-[#00f2fe]" />
-                 </div>
-              </div>
-           </div>
-
-           <div className="p-8 glass-panel space-y-4 bg-emerald-500/[0.03] border-emerald-500/10">
-              <div className="flex items-center gap-2 text-emerald-400">
-                 <ShieldCheck className="w-4 h-4" />
-                 <h5 className="text-[10px] font-black uppercase tracking-[0.2em]">Offline Assurance</h5>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                 VoiceForge uses your device's native Speech Synthesis Interface. This means your text is converted to audio signals locally without ever reaching a server.
-              </p>
-           </div>
-        </div>
-
+            <div className="p-10 bg-white/[0.01] border-t border-white/5 flex justify-between items-center">
+               <div className="flex items-center gap-6">
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={isPlaying ? stop : speak} 
+                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all ${isPlaying ? 'bg-rose-500 text-white animate-pulse' : 'bg-white text-black'}`}
+                  >
+                    {isPlaying ? <Pause className="w-8 h-8 fill-white" /> : <Play className="w-8 h-8 fill-black ml-1" />}
+                  </motion.button>
+                  <div className="space-y-1">
+                     <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">{isPlaying ? "Synthesis Active" : "Ready to Forge"}</p>
+                     <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Acoustic Signal Ready</p>
+                  </div>
+               </div>
+               <button className="pill-button pill-button-ghost h-14 gap-3">
+                  <Download className="w-5 h-5" /> Export Waveform
+               </button>
+            </div>
+         </div>
       </div>
+
     </div>
   );
 }
