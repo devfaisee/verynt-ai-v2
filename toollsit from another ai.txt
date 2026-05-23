@@ -1,0 +1,374 @@
+AI Document Toolbox — Complete Feature Stack
+Think of it like:
+“Canva + SmallPDF + AI”
+But:
+privacy-first
+mostly client-side AI
+instant
+no signup required initially
+Core Positioning
+Homepage message:
+“Your files never leave your device.”
+That alone is powerful.
+MAIN PRODUCT CATEGORIES
+1. PDF TOOLS
+These bring SEO traffic.
+Essential
+Merge PDFs
+Split PDFs
+Compress PDFs
+Rotate pages
+Reorder pages
+Extract pages
+Delete pages
+Convert PDF → JPG
+Convert JPG → PDF
+Word ↔ PDF
+PPT ↔ PDF
+Excel ↔ PDF
+AI Features
+Summarize PDF
+Explain PDF
+Ask questions about PDF
+Generate notes from PDF
+Convert PDF to flashcards
+Extract key points
+Extract tables
+Detect important sections
+Simplify legal language
+Translate PDFs
+Useful libraries:
+mozilla.github.io⁠�
+pdf-lib.js.org⁠�
+2. OCR & SCANNING
+Massive demand.
+Features
+Image → text
+Handwriting recognition
+Receipt scanner
+Invoice extractor
+ID card scanner
+Business card scanner
+Screenshot text extractor
+Multi-language OCR
+Batch OCR
+Smart AI
+Detect tables
+Extract totals from receipts
+Extract emails/phones
+Convert scan → editable document
+Tools:
+tesseract.projectnaptha.com⁠�
+huggingface.co⁠�
+3. AI SUMMARIZATION
+One of the highest-retention features.
+Modes
+Short summary
+Bullet summary
+Student notes
+Executive summary
+Explain like beginner
+Timeline extraction
+Action items extraction
+Meeting minutes
+Inputs
+PDFs
+pasted text
+screenshots
+websites
+YouTube transcripts
+4. STUDENT TOOLS
+Huge audience.
+Features
+Flashcard generator
+Quiz generator
+MCQ creator
+Study notes
+Formula sheet generator
+Assignment summarizer
+Citation generator
+Lecture transcript cleaner
+Math AI
+Solve equations
+Explain steps
+Graph functions
+Example:
+5. WRITING TOOLS
+These are lightweight and easy to run client-side.
+Features
+Grammar fix
+Rewrite professionally
+Simplify text
+Expand text
+Shorten text
+Email generator
+Resume improver
+Cover letter generator
+LinkedIn post writer
+Blog title generator
+Tweet generator
+6. IMAGE AI TOOLS
+Very viral traffic potential.
+Features
+Remove background
+AI upscale
+Blur faces
+Remove noise
+Convert image → text
+Convert image → PDF
+Compress image intelligently
+Convert HEIC ↔ JPG
+AI meme captioner
+Tools:
+mediapipe.dev⁠�
+onnxruntime.ai⁠�
+7. TRANSLATION TOOLS
+Very useful internationally.
+Features
+Translate PDFs
+Translate screenshots
+Translate scanned documents
+Live text translation
+Subtitle translation
+8. DEVELOPER TOOLS
+Good SEO.
+Features
+JSON formatter
+Regex generator
+SQL formatter
+API request generator
+Code explainer
+Error explanation
+Markdown converter
+Base64 tools
+9. BROWSER-AI FEATURES
+This is your DIFFERENTIATOR.
+Add labels everywhere:
+“Runs locally”
+“Private”
+“No upload”
+“Works offline”
+“Powered by your device”
+Users love this now.
+AI MODELS TO USE
+Text
+Phi-3 Mini
+Qwen2.5-1.5B
+Gemma 2B
+OCR
+Tesseract.js
+Speech
+Whisper Tiny
+Vision
+MediaPipe
+TECH STACK
+Frontend
+nextjs.org⁠�
+tailwindcss.com⁠�
+Browser AI
+huggingface.co⁠�
+webllm.mlc.ai⁠�
+onnxruntime.ai⁠�
+Backend
+Tiny backend only:
+auth
+analytics
+subscriptions
+saved history
+You barely need GPU servers initially.
+MONETIZATION
+Free
+ads
+limited daily AI usage
+Premium
+faster models
+cloud AI option
+save history
+batch processing
+larger file limits
+export formats
+MOST IMPORTANT THING
+Do NOT launch 50 tools immediately.
+Launch:
+PDF summarize
+OCR
+Image compression
+Ask PDF questions
+Then expand.
+Most successful utility sites started tiny.
+Yes — if I wanted to turn it from “another utility site” into a real business, I’d eventually expand into specialized verticals and workflows.
+The real money is usually in:
+niche workflows, not generic tools.
+Here’s what I’d add later.
+10. AI WORKSPACE / PROJECTS
+Instead of one-off tools, let users create “projects.”
+Example:
+upload PDFs
+screenshots
+notes
+audio
+web links
+Then:
+ask questions across all files
+generate summaries
+search everything
+Basically:
+mini local AI workspace.
+Huge retention upgrade.
+11. RESEARCH ASSISTANT
+Very strong for students and professionals.
+Features
+extract citations
+generate bibliography
+compare papers
+explain research papers
+convert paper → presentation
+detect key findings
+highlight contradictions
+Could target:
+students
+researchers
+lawyers
+journalists
+12. LEGAL DOCUMENT TOOLS
+Massive opportunity.
+Features
+simplify contracts
+explain terms
+highlight risks
+extract deadlines
+summarize agreements
+NDA analyzer
+invoice analyzer
+Privacy-first positioning works VERY well here.
+13. RESUME / JOB TOOLS
+Easy monetization.
+Features
+ATS score checker
+resume improver
+resume tailoring
+cover letter generator
+interview question generator
+LinkedIn optimization
+portfolio review
+14. CONTENT CREATOR TOOLS
+Very shareable.
+Features
+YouTube transcript cleanup
+clip idea generator
+caption generator
+thumbnail title ideas
+blog → Twitter thread
+tweet → LinkedIn post
+script summarizer
+15. VOICE / AUDIO TOOLS
+Browser AI is getting very good here.
+Features
+speech-to-text
+subtitle generator
+meeting transcription
+remove filler words
+summarize meetings
+podcast summarizer
+Models:
+Whisper Small
+16. AI AGENTS (LIGHTWEIGHT)
+Not full autonomous agents.
+Small workflow automations:
+rename files intelligently
+auto-sort documents
+classify PDFs
+organize receipts
+generate folder structures
+17. MOBILE-FIRST TOOLS
+VERY important.
+Most utility traffic is mobile now.
+Features
+camera scanner
+homework solver
+instant OCR
+photo cleanup
+translate from camera
+screenshot assistant
+Could become:
+Android app
+PWA
+offline app
+18. TEAM / BUSINESS FEATURES
+This is where higher revenue comes.
+Features
+shared workspaces
+company document search
+team AI assistant
+local/private processing
+admin controls
+Potential B2B SaaS later.
+19. OFFLINE MODE
+Very underrated differentiator.
+Imagine:
+install as PWA
+works on flights
+works with no internet
+all AI local
+People LOVE this.
+20. “AI UTILITIES ENGINE”
+This is the long-term vision.
+Eventually your site becomes:
+the operating system for AI-powered utilities.
+Not just “PDF tools.”
+Users come for:
+documents
+study
+writing
+images
+coding
+workflows
+automation
+Categories I’d Eventually Add
+Productivity
+note cleaner
+task extractor
+calendar extraction
+Finance
+invoice parsing
+expense categorization
+statement summarizer
+Education
+exam prep
+quiz mode
+homework explainers
+Coding
+code review
+snippet generator
+API testing
+Localization
+subtitle generation
+multilingual OCR
+translation workflows
+Biggest Hidden Opportunity
+“AI for low-end devices”
+Most AI companies optimize for:
+RTX GPUs
+MacBooks
+But billions of users have:
+weak laptops
+Android phones
+If your site:
+loads fast
+runs lightweight models
+works on mobile
+you can dominate markets many startups ignore.
+Especially:
+Pakistan
+India
+Africa
+Southeast Asia
+What I’d prioritize MOST
+Not more features.
+I’d prioritize:
+speed
+simplicity
+privacy
+instant results
+mobile experience
+Utility sites win because they feel effortless.
