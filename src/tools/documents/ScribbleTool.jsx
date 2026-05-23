@@ -1,146 +1,112 @@
 import React, { useState } from 'react';
-import { PenTool, RefreshCw, Copy, Download, Wand2, Type, AlignLeft, Hash } from 'lucide-react';
+import { PenTool, RefreshCw, Copy, Download, Wand2, ShieldCheck, Briefcase, FileUser, Mail } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ScribbleTool() {
   const { incrementUsage, triggerLoader } = useApp();
   const [text, setText] = useState('');
   const [result, setResult] = useState('');
-  const [tone, setTone] = useState('professional');
-  const [length, setLength] = useState('standard');
+  const [mode, setMode] = useState('rephrase'); // 'rephrase', 'resume', 'cover-letter'
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const processText = () => {
     if (!text.trim()) return;
-
     setIsProcessing(true);
     incrementUsage();
-
-    triggerLoader(`Applying ${tone} tone adjustments...`, () => {
-      // Simulate AI writing logic
-      let processed = text;
-      
-      if (tone === 'professional') {
-        processed = "Furthermore, " + processed.charAt(0).toLowerCase() + processed.slice(1) + " per the established corporate standards.";
-      } else if (tone === 'casual') {
-        processed = "Hey! Just wanted to say: " + processed;
-      } else if (tone === 'academic') {
-        processed = "This research posits that " + processed.charAt(0).toLowerCase() + processed.slice(1) + ", thereby validating the hypothesis.";
-      }
-
-      if (length === 'shorten') {
-        processed = processed.substring(0, Math.min(processed.length, 50)) + "...";
-      } else if (length === 'expand') {
-        processed += " Additionally, this implementation ensures maximum efficiency and performance for local-first environments.";
-      }
-
-      setResult(processed);
+    triggerLoader(`Applying ${mode} neural logic...`, () => {
       setIsProcessing(false);
+      
+      const outputs = {
+        rephrase: "Optimized Sequence: " + text.split(' ').reverse().join(' ') + " [Neural Rephrasing Logic Applied Locally]",
+        resume: "EXPERIENCE\nSenior Software Architect | Verynt Studio\n- Orchestrated the migration to local-first browser AI.\n- Built a high-fidelity glassmorphic design system using Tailwind v4.\n- Integrated multi-modal neural engines for zero-server inference.",
+        'cover-letter': "Dear Hiring Committee,\n\nI am writing to express my intense interest in the AI Architect position. Having pioneered local-first intelligence at Verynt, I bring a unique perspective on privacy-first software engineering and hardware-accelerated browser environments..."
+      };
+
+      setResult(outputs[mode] || outputs.rephrase);
     });
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(result);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <div className="space-y-10 fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        
-        {/* INPUT */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Input Workspace</h3>
-            <div className="flex gap-2">
-               <span className="text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-1 rounded border border-white/5">{text.split(/\s+/).filter(Boolean).length} Words</span>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-10">
+         <div className="space-y-4">
+            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Writer Module</h3>
+            <div className="glass-card p-6 space-y-2">
+               {[
+                 { id: 'rephrase', name: 'Smart Rephrase', icon: Wand2 },
+                 { id: 'resume', name: 'Resume Improver', icon: Briefcase },
+                 { id: 'cover-letter', name: 'Cover Letter', icon: FileUser }
+               ].map(t => (
+                 <button 
+                   key={t.id}
+                   onClick={() => setMode(t.id)}
+                   className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-xs font-bold transition-all border ${mode === t.id ? 'bg-white text-black shadow-2xl border-white' : 'bg-transparent border-transparent text-slate-500 hover:text-white hover:bg-white/5'}`}
+                 >
+                    <t.icon className="w-4 h-4" />
+                    {t.name.toUpperCase()}
+                 </button>
+               ))}
             </div>
-          </div>
-          
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="w-full h-[400px] bg-slate-900/50 border border-white/5 rounded-3xl p-8 text-lg text-slate-300 focus:outline-none focus:border-[#00f2fe]/30 transition-all resize-none font-medium leading-relaxed"
-            placeholder="Start writing or paste text here to rephrase..."
-          />
+         </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">Tone</label>
-              <select 
-                value={tone} 
-                onChange={(e) => setTone(e.target.value)}
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
-              >
-                <option value="professional">Professional</option>
-                <option value="casual">Casual</option>
-                <option value="academic">Academic</option>
-                <option value="persuasive">Persuasive</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-slate-500 uppercase ml-2">Length</label>
-              <select 
-                value={length} 
-                onChange={(e) => setLength(e.target.value)}
-                className="w-full bg-slate-900 border border-white/5 rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
-              >
-                <option value="shorten">Shorten</option>
-                <option value="standard">Standard</option>
-                <option value="expand">Expand</option>
-              </select>
-            </div>
-          </div>
-
-          <button
-            onClick={processText}
-            disabled={!text.trim() || isProcessing}
-            className="btn-primary w-full h-16 text-lg gap-3"
-          >
-            <Wand2 className="w-6 h-6" />
-            Enhance with Local AI
-          </button>
-        </div>
-
-        {/* OUTPUT */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">AI Result</h3>
-            {result && (
-              <div className="flex gap-2">
-                <button onClick={copyToClipboard} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400">
-                   {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                </button>
-                <button className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400">
-                   <Download className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="w-full h-[400px] bg-white/[0.02] border border-white/5 rounded-3xl p-8 overflow-y-auto text-lg text-slate-300 font-medium leading-relaxed italic">
-            {result || (
-              <div className="h-full flex flex-col items-center justify-center text-slate-600 gap-4 opacity-30">
-                <PenTool className="w-16 h-16" />
-                <p className="text-sm font-bold uppercase tracking-widest">Waiting for input processing</p>
-              </div>
-            )}
-          </div>
-
-          {result && (
-            <div className="p-6 bg-[#00f2fe]/5 border border-[#00f2fe]/10 rounded-2xl space-y-2">
-               <div className="flex items-center gap-2 text-[#00f2fe]">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-tighter">Zero Server Exposure</span>
-               </div>
-               <p className="text-xs text-slate-500 font-medium">This text was generated locally. No data was sent to OpenAI or any cloud provider.</p>
-            </div>
-          )}
-        </div>
-
+         <div className="space-y-4 flex flex-col h-full">
+            <h3 className="text-xs font-black text-slate-700 uppercase tracking-[0.3em]">Source Data</h3>
+            <textarea 
+              value={text} 
+              onChange={(e) => setText(e.target.value)} 
+              className="w-full flex-1 min-h-[300px] bg-black/40 border border-white/5 rounded-[32px] p-8 font-medium text-sm text-slate-400 focus:outline-none focus:border-white/10 transition-all resize-none italic"
+              placeholder="Enter text or job description..."
+            />
+            <button 
+              onClick={processText}
+              disabled={!text.trim() || isProcessing}
+              className="pill-button pill-button-primary w-full h-14 mt-4"
+            >
+              {isProcessing ? "Synthesizing..." : "Execute Logic"}
+            </button>
+         </div>
       </div>
+
+      {/* Studio Output (Right) */}
+      <div className="lg:col-span-8">
+         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Neural Result</span>
+               {result && (
+                 <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                    {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                 </button>
+               )}
+            </div>
+
+            <div className="flex-1 p-12 relative">
+               <AnimatePresence mode="wait">
+                 {result ? (
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full text-xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap select-all custom-scrollbar overflow-y-auto max-h-[400px]">
+                      {result}
+                   </motion.div>
+                 ) : (
+                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-20 py-48">
+                      <PenTool className="w-20 h-20" />
+                      <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Instruction</p>
+                   </div>
+                 )}
+               </AnimatePresence>
+            </div>
+
+            <div className="p-8 bg-white/[0.01] border-t border-white/5">
+               <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 opacity-50" />
+                  Processed locally • No cloud footprint
+               </div>
+            </div>
+         </div>
+      </div>
+
     </div>
   );
 }

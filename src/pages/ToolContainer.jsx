@@ -1,9 +1,9 @@
 import React, { lazy, Suspense } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import SEO from '../components/SEO';
 import { getToolById } from '../tools/REGISTRY';
-import { Loader2, ChevronLeft, Share2, Info, Maximize2, ShieldCheck, Zap } from 'lucide-react';
+import { Loader2, ChevronLeft, Share2, Info, Maximize2, ShieldCheck, Zap, Database } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const toolComponents = {
@@ -15,7 +15,8 @@ const toolComponents = {
   scale: lazy(() => import('../tools/images/ScaleTool')),
   ocr: lazy(() => import('../tools/images/OCRTool')),
   'dev-utils': lazy(() => import('../tools/developer/DevTools')),
-  'student-hub': lazy(() => import('../tools/student/StudentTools'))
+  'student-hub': lazy(() => import('../tools/student/StudentTools')),
+  'model-manager': lazy(() => import('./ModelManager'))
 };
 
 export default function ToolContainer() {
@@ -23,7 +24,7 @@ export default function ToolContainer() {
   const navigate = useNavigate();
   const { incrementUsage, triggerLoader } = useApp();
 
-  const tool = getToolById(toolId);
+  const tool = getToolById(toolId) || (toolId === 'model-manager' ? { name: 'Engine Manager', description: 'Local neural weight registry.', icon: Database, tags: ['system', 'cache'] } : null);
   const ToolComponent = toolComponents[toolId];
 
   if (!tool || !ToolComponent) {
@@ -58,12 +59,12 @@ export default function ToolContainer() {
         </div>
         
         <div className="flex items-center gap-4">
+           <Link to="/tool/model-manager" className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all">
+              <Database className="w-3.5 h-3.5" /> Registry
+           </Link>
            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#00f2fe]/5 border border-[#00f2fe]/20 text-[#00f2fe] text-[10px] font-black uppercase tracking-widest">
               <ShieldCheck className="w-3.5 h-3.5" /> Private Buffer
            </div>
-           <button className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-              <Share2 className="w-5 h-5" />
-           </button>
         </div>
       </div>
 
@@ -89,7 +90,16 @@ export default function ToolContainer() {
         </div>
       </motion.div>
 
-      {/* Bottom Metadata / Controls */}
+      {/* Ad Placement: Studio Banner */}
+      <div className="w-full h-32 glass-card flex items-center justify-center relative overflow-hidden bg-white/[0.01]">
+         <div className="absolute top-2 right-4 text-[8px] font-black text-slate-700 uppercase tracking-widest">Sponsored</div>
+         <div className="text-center space-y-1">
+            <p className="text-xs font-bold text-slate-500">Ad Placement Hub</p>
+            <p className="text-[10px] text-slate-600 uppercase tracking-tighter">Your high-margin revenue engine starts here.</p>
+         </div>
+      </div>
+
+      {/* Bottom Metadata */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600">
          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
@@ -98,11 +108,11 @@ export default function ToolContainer() {
             </div>
             <div className="flex items-center gap-2">
                <Info className="w-4 h-4" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">v4.0.2 Studio</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">v4.1.0 Studio</span>
             </div>
          </div>
          <p className="text-[11px] font-medium max-w-md text-center md:text-right">
-            All AI operations are strictly executed within your browser's private V8 environment. Zero telemetry is transmitted.
+            Studio is supported by non-intrusive contextual placements. 100% of AI computation remains local.
          </p>
       </div>
     </div>

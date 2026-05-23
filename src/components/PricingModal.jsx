@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Check, ShieldCheck, Zap, HardDrive, Award, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Check, ShieldCheck, Zap, HardDrive, Award, ArrowRight, Heart } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,25 +23,25 @@ export default function PricingModal() {
             className="glass-card w-full max-w-6xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[700px] shadow-[0_50px_100px_rgba(0,0,0,0.6)]"
           >
             
-            {/* Left Side: Editorial Pitch */}
+            {/* Left Side: Support & Mission */}
             <div className="flex-1 p-12 lg:p-24 space-y-16 bg-white/[0.01]">
                <div className="space-y-6">
                   <div className="inline-flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] bg-white/5 px-6 py-2 rounded-full border border-white/10">
-                     <Award className="w-4 h-4" /> Global License
+                     <Heart className="w-4 h-4 text-rose-500" /> Support Local AI
                   </div>
                   <h2 className="text-6xl lg:text-8xl font-black text-white leading-[0.85] tracking-tighter">
-                     Master your<br />privacy.
+                     Keep AI<br />independent.
                   </h2>
                   <p className="text-xl text-slate-500 font-medium max-w-md leading-relaxed">
-                     Scale your local intelligence with higher-fidelity neural models and unrestricted data buffers.
+                     Verynt is 100% serverless and ad-supported. Help us maintain the highest standard of local-first intelligence.
                   </p>
                </div>
 
                <div className="grid grid-cols-1 gap-10">
                   {[
-                    { title: 'Neural Expansion', desc: 'Deploy Whisper Base and Llama-3 weights.', icon: Zap, color: '#00f2fe' },
-                    { title: 'Infinite Buffer', desc: 'Zero caps on signal length or file resolution.', icon: ShieldCheck, color: '#bf5af2' },
-                    { title: 'Parallel Execution', desc: 'Initialize up to 20 studio nodes in-parallel.', icon: HardDrive, color: '#64d2ff' }
+                    { title: 'Support Open Source', desc: 'Your contribution funds the optimization of local neural weights.', icon: Zap, color: '#00f2fe' },
+                    { title: 'Remove Placements', desc: 'Enjoy a completely distraction-free studio environment.', icon: ShieldCheck, color: '#bf5af2' },
+                    { title: 'Future-Proof Privacy', desc: 'Help us scale 100% air-gapped AI to more devices worldwide.', icon: HardDrive, color: '#64d2ff' }
                   ].map((item, i) => (
                     <div key={i} className="flex gap-8 items-start">
                        <div className="w-14 h-14 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
@@ -66,13 +66,13 @@ export default function PricingModal() {
                </button>
 
                <div className="space-y-6 pt-12">
-                  <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Studio Pro Access</span>
+                  <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">Verynt Supporter</span>
                   <div className="flex items-baseline gap-2 justify-center">
                      <span className="text-8xl font-black text-black tracking-tighter">$12</span>
-                     <span className="text-xl text-slate-400 font-bold">/mo</span>
+                     <span className="text-xl text-slate-400 font-bold">/yr</span>
                   </div>
                   <div className="px-6 py-2 rounded-full bg-emerald-50 text-emerald-600 text-xs font-black tracking-widest uppercase inline-block border border-emerald-100">
-                     Billed Annually • Save 40%
+                     Ad-Free Experience
                   </div>
                </div>
 
@@ -80,20 +80,20 @@ export default function PricingModal() {
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => alert("Redirecting to Checkout...")}
+                    onClick={() => alert("Redirecting to Support Portal...")}
                     className="w-full h-20 bg-black text-white rounded-[2rem] font-bold text-xl flex items-center justify-center gap-4 shadow-2xl transition-all"
                   >
-                     Activate Pro <ArrowRight className="w-6 h-6" />
+                     Support Verynt <ArrowRight className="w-6 h-6" />
                   </motion.button>
                   <p className="text-[10px] text-slate-400 font-medium px-12 leading-relaxed">
-                     Secure encryption via Stripe. One-click deactivation in settings. Final signal remains local.
+                     Verynt is primarily supported by ads to keep AI free and private for everyone.
                   </p>
                </div>
 
                <div className="w-full pt-16 border-t border-slate-100 grid grid-cols-3 gap-8">
                   <PriceStat label="STUDIOS" value="50K+" />
-                  <PriceStat label="UPTIME" value="100%" />
-                  <PriceStat label="CLOUD COST" value="$0" />
+                  <PriceStat label="REVENUE" value="ADS" />
+                  <PriceStat label="SERVER" value="$0" />
                </div>
             </div>
 

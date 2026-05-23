@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { FileCode, Upload, FileText, Download, Check, RefreshCw, Cpu, Split, Merge, RotateCw } from 'lucide-react';
+import { FileText, Upload, Download, RefreshCw, Cpu, Split, Merge, RotateCw, Trash2 } from 'lucide-react';
 import { PDFDocument } from 'pdf-lib';
 
 export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
-  const [activeSubTool, setActiveSubTool] = useState('merge'); // 'merge', 'split', 'rotate'
+  const [activeSubTool, setActiveSubTool] = useState('merge'); // 'merge', 'split', 'rotate', 'delete'
   
   // 1. Merge States
   const [mergeFiles, setMergeFiles] = useState([]);
@@ -21,6 +21,12 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
   const [rotationDegrees, setRotationDegrees] = useState(90);
   const [rotatedPdfUrl, setRotatedPdfUrl] = useState('');
   const [isRotating, setIsRotating] = useState(false);
+
+  // 4. Delete States
+  const [deleteFile, setDeleteFile] = useState(null);
+  const [deletePageStr, setDeletePageStr] = useState('3'); // page numbers to delete, comma-separated (e.g. "3,5")
+  const [deletePdfUrl, setDeletePdfUrl] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleMergeFileInput = (e) => {
     if (e.target.files) {
@@ -80,7 +86,6 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
           const pdf = await PDFDocument.load(arrayBuffer);
           const splitPdf = await PDFDocument.create();
           
-          // Parse range, e.g. "1-2"
           const parts = splitRange.split('-').map(p => parseInt(p.trim()) - 1);
           const start = Math.max(0, parts[0] || 0);
           const end = Math.min(pdf.getPageCount() - 1, parts[1] || start);
@@ -121,7 +126,6 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
           const arrayBuffer = await rotateFile.arrayBuffer();
           const pdf = await PDFDocument.load(arrayBuffer);
           
-          // Rotate all pages
           const pages = pdf.getPages();
           pages.forEach((page) => {
             const currentRotation = page.getRotation().angle;
@@ -141,6 +145,53 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
     );
   };
 
+  const executeDeletePages = async () => {
+    if (!deleteFile) return;
+
+    setIsDeleting(true);
+    incrementUsage();
+
+    triggerLoader(
+      (progress, setStatusText) => {
+        setStatusText(`Deleting specified pages locally... ${progress}%`);
+      },
+      async () => {
+        try {
+          const arrayBuffer = await deleteFile.arrayBuffer();
+          const pdf = await PDFDocument.load(arrayBuffer);
+          
+          // Parse page numbers to delete (e.g. "3, 5" -> [2, 4])
+          const toDelete = deletePageStr.split(',').map(p => parseInt(p.trim()) - 1).filter(p => !isNaN(p));
+          
+          const totalPages = pdf.getPageCount();
+          const keepIndices = [];
+          for (let i = 0; i < totalPages; i++) {
+            if (!toDelete.includes(i)) {
+              keepIndices.push(i);
+            }
+          }
+
+          if (keepIndices.length === 0) {
+            throw new Error("Cannot delete all pages in the PDF document.");
+          }
+
+          const cleanPdf = await PDFDocument.create();
+          const copiedPages = await cleanPdf.copyPages(pdf, keepIndices);
+          copiedPages.forEach((page) => cleanPdf.addPage(page));
+
+          const pdfBytes = await cleanPdf.save();
+          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          setDeletePdfUrl(url);
+        } catch (e) {
+          alert("Error deleting PDF pages: " + e.message);
+        } finally {
+          setIsDeleting(false);
+        }
+      }
+    );
+  };
+
   const downloadFile = (url, filename) => {
     const link = document.createElement('a');
     link.href = url;
@@ -155,7 +206,7 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
           <FileText className="w-6 h-6 text-[#00f2fe]" /> Verynt PDF Utilities
         </h2>
         <p className="text-sm text-gray-400">
-          Merge, split, and rotate PDFs 100% locally in your browser. No files are uploaded to any server.
+          Merge, split, rotate, and delete PDF pages 100% locally in your browser. No data leaves your machine.
         </p>
       </div>
 
@@ -187,6 +238,14 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
               }`}
             >
               <RotateCw className="w-4 h-4" /> Rotate PDF
+            </button>
+            <button
+              onClick={() => setActiveSubTool('delete')}
+              className={`w-full py-3 px-4 rounded-xl font-display text-xs font-bold text-left flex items-center gap-2 transition-all ${
+                activeSubTool === 'delete' ? 'bg-[#9b51e0] text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <Trash2 className="w-4 h-4" /> Delete Pages
             </button>
           </div>
         </div>
@@ -403,6 +462,83 @@ export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
                         </button>
                         <button 
                           onClick={() => { setRotateFile(null); setRotatedPdfUrl(''); }}
+                          className="btn-secondary text-xs"
+                        >
+                          <RefreshCw className="w-4 h-4" /> Reset
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SUB-TOOL: DELETE */}
+          {activeSubTool === 'delete' && (
+            <div className="glass-panel p-6 rounded-2xl space-y-6 fade-in">
+              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                <Trash2 className="w-4.5 h-4.5 text-rose-500" /> Client-Side PDF Page Deletion
+              </h3>
+
+              <div className="space-y-4">
+                <div 
+                  className="border-2 border-dashed border-slate-800 hover:border-slate-700 p-8 rounded-xl text-center cursor-pointer"
+                  onClick={() => document.getElementById('delete-page-input').click()}
+                >
+                  <input 
+                    id="delete-page-input" 
+                    type="file" 
+                    accept=".pdf" 
+                    className="hidden" 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setDeleteFile(e.target.files[0]);
+                        setDeletePdfUrl('');
+                      }
+                    }}
+                  />
+                  <Upload className="w-8 h-8 text-rose-500 mx-auto mb-3" />
+                  <h4 className="text-xs font-bold text-white">
+                    {deleteFile ? deleteFile.name : "Select PDF File to Delete Pages"}
+                  </h4>
+                  <p className="text-[10px] text-gray-500 mt-1">Upload a single document</p>
+                </div>
+
+                {deleteFile && (
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">Page Numbers to Delete</label>
+                        <input 
+                          type="text" 
+                          value={deletePageStr} 
+                          onChange={(e) => setDeletePageStr(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
+                          placeholder="e.g. 3, or 2, 4"
+                        />
+                        <span className="text-[9px] text-gray-500 block">Provide comma-separated numbers (1-indexed)</span>
+                      </div>
+                    </div>
+
+                    {!deletePdfUrl ? (
+                      <button 
+                        onClick={executeDeletePages}
+                        disabled={isDeleting}
+                        className="btn-primary w-full text-xs justify-center"
+                      >
+                        <Cpu className="w-4 h-4 animate-pulse" /> Delete Specified Pages Offline
+                      </button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => downloadFile(deletePdfUrl, `deleted_pages_${deleteFile.name}`)}
+                          className="btn-primary flex-1 text-xs justify-center"
+                        >
+                          <Download className="w-4 h-4" /> Download Clean PDF
+                        </button>
+                        <button 
+                          onClick={() => { setDeleteFile(null); setDeletePdfUrl(''); }}
                           className="btn-secondary text-xs"
                         >
                           <RefreshCw className="w-4 h-4" /> Reset

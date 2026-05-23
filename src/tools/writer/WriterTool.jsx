@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { PenTool, FileText, Check, Copy, RefreshCw, Cpu, Sparkles } from 'lucide-react';
+import { PenTool, FileText, Check, Copy, RefreshCw, Cpu, Sparkles, Award } from 'lucide-react';
 
 export default function WriterTool({ incrementUsage, triggerLoader }) {
   const [inputText, setInputText] = useState("yo support, my resume is kinda weak. can u help me make it sound professional so i can secure a job? let me know asap. thanks!");
   const [outputText, setOutputText] = useState('');
   const [activeTone, setActiveTone] = useState('professional'); // 'professional', 'casual', 'academic', 'shorten', 'expand'
-  const [activeTab, setActiveTab] = useState('rewrite'); // 'rewrite', 'templates'
+  const [activeTab, setActiveTab] = useState('rewrite'); // 'rewrite', 'templates', 'ats'
   const [templateType, setTemplateType] = useState('email'); // 'email', 'coverletter', 'linkedin'
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -14,6 +14,12 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
   const [jobTitle, setJobTitle] = useState('Software Engineer');
   const [companyName, setCompanyName] = useState('Verynt AI');
   const [userSkills, setUserSkills] = useState('React, JavaScript, WebGPU, Python');
+
+  // ATS Checker Inputs
+  const [resumeText, setResumeText] = useState("Experienced developer with skills in React, JavaScript, and Node.js. Built visual dashboards and managed state arrays. Deep focus on performance and clean code frameworks.");
+  const [jobDescText, setJobDescText] = useState("We are looking for a Senior Software Engineer. The candidate must be proficient in React, JavaScript, TypeScript, WebGPU, Node.js, and have experience with SaaS platform scalability.");
+  const [atsScore, setAtsScore] = useState(0);
+  const [atsReport, setAtsReport] = useState(null);
 
   const executeRewrite = () => {
     setIsProcessing(true);
@@ -30,7 +36,6 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
       () => {
         setIsProcessing(false);
         let result = '';
-        const raw = inputText.trim();
 
         if (activeTone === 'professional') {
           result = `Dear Support Team,\n\nI hope this message finds you well. I am currently seeking assistance in optimizing my resume to enhance its professional presentation for potential employment opportunities. \n\nI would greatly appreciate your guidance and support in this matter. Thank you for your time and prompt attention to this request.\n\nSincerely,\n[Your Name]`;
@@ -72,6 +77,50 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
     );
   };
 
+  const runATSChecker = () => {
+    setIsProcessing(true);
+    incrementUsage();
+
+    triggerLoader(
+      (progress, setStatusText) => {
+        setStatusText(`Analyzing resume vocabulary & matching density... ${progress}%`);
+      },
+      () => {
+        setIsProcessing(false);
+
+        // Simple local keyword matching algorithms
+        const resumeWords = resumeText.toLowerCase().split(/[\s,.\/]+/);
+        const jobDescWords = jobDescText.toLowerCase().split(/[\s,.\/]+/);
+
+        // Filter unique keywords of interest
+        const keywordsOfInterest = ["react", "javascript", "typescript", "webgpu", "node.js", "scalable", "scale", "performance", "python", "css", "html"];
+        
+        const matched = keywordsOfInterest.filter(word => 
+          resumeWords.includes(word) && jobDescWords.includes(word)
+        );
+
+        const missing = keywordsOfInterest.filter(word => 
+          jobDescWords.includes(word) && !resumeWords.includes(word)
+        );
+
+        // Calculate score
+        const scoreVal = Math.floor((matched.length / (matched.length + missing.length || 1)) * 100);
+        
+        setAtsScore(scoreVal);
+        setAtsReport({
+          score: scoreVal,
+          matchedKeywords: matched,
+          missingKeywords: missing,
+          tips: [
+            "Incorporate standard keyword hooks such as: " + missing.map(w => `"${w}"`).join(', '),
+            "Emphasize scalable software architectures and browser hardware caching.",
+            "Write descriptive impact metrics inside your past job experience cards."
+          ]
+        });
+      }
+    );
+  };
+
   return (
     <div className="space-y-6 fade-in">
       <div className="space-y-2">
@@ -79,7 +128,7 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
           <PenTool className="w-6 h-6 text-[#00f2fe]" /> Verynt Writing Assistant
         </h2>
         <p className="text-sm text-gray-400">
-          Professional offline text rephraser, email generator, and cover letter creator. 100% private.
+          Professional offline text rephraser, resume cover letter generator, and ATS checker. 100% private.
         </p>
       </div>
 
@@ -89,13 +138,19 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
           onClick={() => { setActiveTab('rewrite'); setOutputText(''); }}
           className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'rewrite' ? 'bg-[#9b51e0] text-white' : 'text-gray-400 hover:text-white'}`}
         >
-          AI Rephraser & Grammar Fix
+          AI Rephraser
         </button>
         <button 
           onClick={() => { setActiveTab('templates'); setOutputText(''); }}
           className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'templates' ? 'bg-[#9b51e0] text-white' : 'text-gray-400 hover:text-white'}`}
         >
-          Professional SaaS Templates
+          SaaS Templates
+        </button>
+        <button 
+          onClick={() => { setActiveTab('ats'); setOutputText(''); }}
+          className={`px-4 py-2 rounded-lg transition-colors ${activeTab === 'ats' ? 'bg-[#9b51e0] text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          ATS Resume Checker
         </button>
       </div>
 
@@ -105,7 +160,7 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
         <div className="lg:col-span-5 space-y-4">
           
           {/* TAB: REWRITE INPUTS */}
-          {activeTab === 'rewrite' ? (
+          {activeTab === 'rewrite' && (
             <div className="glass-panel p-5 rounded-2xl space-y-4">
               <span className="text-[10px] font-bold text-gray-400 uppercase">Input Text to Polish</span>
               <textarea
@@ -114,7 +169,6 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
                 className="w-full h-[150px] bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 font-sans text-xs leading-relaxed text-gray-300 focus:outline-none focus:border-cyan-800/50 resize-none"
               />
 
-              {/* Tone Selection */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold text-gray-500 uppercase">Tone Mode</span>
                 <div className="grid grid-cols-3 gap-1 text-[10px] font-bold">
@@ -132,16 +186,14 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
                 </div>
               </div>
 
-              <button 
-                onClick={executeRewrite}
-                disabled={isProcessing}
-                className="btn-primary w-full text-xs justify-center"
-              >
+              <button onClick={executeRewrite} className="btn-primary w-full text-xs justify-center">
                 <Cpu className="w-4 h-4 animate-pulse" /> Rephrase Offline
               </button>
             </div>
-          ) : (
-            /* TAB: TEMPLATE INPUTS */
+          )}
+
+          {/* TAB: TEMPLATE INPUTS */}
+          {activeTab === 'templates' && (
             <div className="glass-panel p-5 rounded-2xl space-y-4 text-xs">
               <div className="flex bg-slate-950 border border-slate-800 rounded-lg p-0.5 font-bold text-[10px]">
                 {['email', 'coverletter', 'linkedin'].map((type) => (
@@ -158,39 +210,47 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Target Job Title</label>
-                  <input 
-                    type="text" 
-                    value={jobTitle} 
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                  />
+                  <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Target Company</label>
-                  <input 
-                    type="text" 
-                    value={companyName} 
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                  />
+                  <input type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Core Skills</label>
-                  <input 
-                    type="text" 
-                    value={userSkills} 
-                    onChange={(e) => setUserSkills(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                  />
+                  <input type="text" value={userSkills} onChange={(e) => setUserSkills(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none" />
                 </div>
               </div>
 
-              <button 
-                onClick={generateTemplate}
-                disabled={isProcessing}
-                className="btn-primary w-full text-xs justify-center"
-              >
+              <button onClick={generateTemplate} className="btn-primary w-full text-xs justify-center">
                 <Sparkles className="w-4 h-4" /> Compile Template
+              </button>
+            </div>
+          )}
+
+          {/* TAB: ATS RESUME CHECKER */}
+          {activeTab === 'ats' && (
+            <div className="glass-panel p-5 rounded-2xl space-y-4 text-xs">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Paste Resume Text</label>
+                <textarea 
+                  value={resumeText} 
+                  onChange={(e) => setResumeText(e.target.value)} 
+                  className="w-full h-24 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-800/50 resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Paste Target Job Description</label>
+                <textarea 
+                  value={jobDescText} 
+                  onChange={(e) => setJobDescText(e.target.value)} 
+                  className="w-full h-24 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-gray-300 focus:outline-none focus:border-cyan-800/50 resize-none"
+                />
+              </div>
+
+              <button onClick={runATSChecker} className="btn-primary w-full text-xs justify-center">
+                <Award className="w-4 h-4" /> Run ATS Audit
               </button>
             </div>
           )}
@@ -201,32 +261,88 @@ export default function WriterTool({ incrementUsage, triggerLoader }) {
         <div className="lg:col-span-7">
           <div className="glass-panel rounded-2xl h-full min-h-[300px] flex flex-col justify-between overflow-hidden">
             
-            <div className="flex items-center justify-between border-b border-slate-800/80 p-4 bg-slate-950/30">
-              <span className="text-xs font-bold text-gray-400">Polished Output</span>
-              {outputText && (
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(outputText);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="p-1.5 hover:bg-slate-800/40 text-gray-400 hover:text-white rounded-lg transition-colors"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                </button>
-              )}
-            </div>
-
-            <div className="flex-1 p-6 text-sm leading-relaxed overflow-y-auto max-h-[320px] text-gray-300 whitespace-pre-wrap font-sans">
-              {outputText ? (
-                outputText
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 gap-2 mt-12 font-sans">
-                  <FileText className="w-10 h-10 text-slate-800" />
-                  <p>Your rewritten professional text will output here.</p>
+            {activeTab === 'ats' && atsReport ? (
+              /* ATS Audit Report Output */
+              <div className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[350px]">
+                <div className="flex items-center justify-between border-b border-slate-900 pb-3">
+                  <h3 className="text-sm font-bold text-white">ATS Audit Analysis</h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-500 uppercase font-bold">Matching Score:</span>
+                    <span className={`text-lg font-black font-display px-2 py-0.5 rounded ${
+                      atsScore >= 75 ? 'text-emerald-400 bg-emerald-950/40 border border-emerald-900/20' : 'text-amber-400 bg-amber-950/40 border border-amber-900/20'
+                    }`}>{atsScore}%</span>
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="space-y-4">
+                  {/* Matched Keywords */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Found Keywords ({atsReport.matchedKeywords.length})</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {atsReport.matchedKeywords.map((k, i) => (
+                        <span key={i} className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-900/25">
+                          ✓ {k}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Missing Keywords */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Missing Keywords ({atsReport.missingKeywords.length})</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {atsReport.missingKeywords.length > 0 ? (
+                        atsReport.missingKeywords.map((k, i) => (
+                          <span key={i} className="text-[10px] font-semibold text-rose-400 bg-rose-950/20 px-2 py-0.5 rounded border border-rose-900/25">
+                            ✗ {k}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-emerald-400 font-bold">No missing keywords found! Excellent match.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tailoring Recommendations */}
+                  <div className="space-y-2 pt-2 border-t border-slate-900">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase block">Optimization Checklist</span>
+                    <ul className="space-y-1 text-xs text-gray-400 list-inside list-decimal leading-relaxed">
+                      {atsReport.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Standard Text Output */
+              <div className="flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between border-b border-slate-800/80 p-4 bg-slate-950/30">
+                  <span className="text-xs font-bold text-gray-400">Polished Output</span>
+                  {outputText && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(outputText);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="p-1.5 hover:bg-slate-800/40 text-gray-400 hover:text-white rounded-lg transition-colors"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex-1 p-6 text-sm leading-relaxed overflow-y-auto max-h-[320px] text-gray-300 whitespace-pre-wrap font-sans">
+                  {outputText ? (
+                    outputText
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 gap-2 mt-12 font-sans">
+                      <FileText className="w-10 h-10 text-slate-800" />
+                      <p>Your rephrased professional text will output here.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
