@@ -27,176 +27,211 @@ import {
   Eraser,
   TrendingUp,
   ShieldCheck,
-  Filter
+  Filter,
+  FileDigit,
+  FileOutput,
+  FileArchive,
+  RefreshCw,
+  LucideLayout
 } from 'lucide-react';
 
 export const TOOLS_REGISTRY = [
-  // --- CATEGORY A: AUDIO & SPEECH ---
+  // --- ACOUSTIC STUDIO ---
   {
     id: 'whisper',
-    name: 'Verynt Whisper',
-    description: 'High-accuracy speech-to-text transcription with local timestamps.',
+    name: 'Whisper Transcribe',
+    description: 'Turn any voice recording into text with 99% accuracy.',
     category: 'audio',
-    icon: FileAudio,
-    isPro: false,
-    models: ['whisper-tiny', 'whisper-base'],
+    icon: Mic,
     tags: ['transcription', 'audio', 'offline']
   },
   {
     id: 'voiceforge',
-    name: 'Verynt VoiceForge',
-    description: 'Natural text-to-speech synthesis with custom pitch and rate controls.',
+    name: 'VoiceForge TTS',
+    description: 'Convert text into natural human speech instantly.',
     category: 'audio',
     icon: Volume2,
-    isPro: false,
-    models: ['speecht5-tts'],
     tags: ['tts', 'audio', 'reader']
   },
   {
     id: 'audioscribe',
-    name: 'Verynt AudioScribe',
-    description: 'Meeting transcription & summarization into Jira/Notion templates.',
+    name: 'AudioScribe AI',
+    description: 'Auto-generate Jira tickets and meeting notes from audio.',
     category: 'audio',
-    icon: Mic,
-    isPro: false,
-    models: ['whisper-base', 'gemma-2b'],
+    icon: Sparkles,
     tags: ['meeting', 'summary', 'productivity']
   },
 
-  // --- CATEGORY B: TEXT & DOCUMENTS ---
+  // --- VISUAL STUDIO ---
   {
-    id: 'redact',
-    name: 'Verynt Redact',
-    description: 'Smart offline PII masker for emails, names, and credit cards.',
-    category: 'documents',
-    icon: Eye,
-    isPro: false,
-    models: ['bert-base-ner'],
-    tags: ['privacy', 'security', 'pii']
+    id: 'clear',
+    name: 'Vision Background',
+    description: 'Instantly remove and swap image backgrounds locally.',
+    category: 'images',
+    icon: ImageIcon,
+    tags: ['vision', 'edit', 'bg-removal']
   },
   {
+    id: 'scale',
+    name: 'Vision Upscaler',
+    description: 'Multiply image resolution up to 4x with neural sharpening.',
+    category: 'images',
+    icon: Layers,
+    tags: ['vision', 'upscale', 'enhance']
+  },
+  {
+    id: 'ocr',
+    name: 'Vision OCR',
+    description: 'Scan and extract text from receipts and screenshots.',
+    category: 'images',
+    icon: Search,
+    tags: ['ocr', 'vision', 'extraction']
+  },
+  {
+    id: 'handwriting',
+    name: 'Handwriting OCR',
+    description: 'Convert handwritten notes into digital editable text.',
+    category: 'images',
+    icon: PenTool,
+    tags: ['ocr', 'handwriting']
+  },
+  {
+    id: 'id-scanner',
+    name: 'ID Card Scanner',
+    description: 'Securely extract data from passports and ID cards locally.',
+    category: 'images',
+    icon: ShieldCheck,
+    tags: ['ocr', 'security']
+  },
+  {
+    id: 'heic-converter',
+    name: 'HEIC to JPG',
+    description: 'Convert iPhone photos to standard formats in-browser.',
+    category: 'images',
+    icon: RefreshCw,
+    tags: ['utility', 'converter']
+  },
+
+  // --- SEMANTIC STUDIO ---
+  {
     id: 'docuchat',
-    name: 'Verynt DocuChat',
-    description: 'Interactive PDF chat and semantic search using local vector DB.',
+    name: 'DocuChat AI',
+    description: 'Chat with your PDF files and get executive summaries.',
     category: 'documents',
-    icon: FileText,
-    isPro: false,
-    models: ['minilm-l6-v2', 'llama-3-8b'],
+    icon: MessageSquare,
     tags: ['pdf', 'chat', 'search']
   },
   {
-    id: 'scribble',
-    name: 'Verynt Scribble',
-    description: 'AI writer and rephraser with tone and length adjustments.',
+    id: 'redact',
+    name: 'Privacy Redact',
+    description: 'Mask sensitive IDs and credit cards in your documents.',
     category: 'documents',
-    icon: PenTool,
-    isPro: false,
-    models: ['lamini-flan-t5'],
+    icon: ShieldCheck,
+    tags: ['privacy', 'security', 'pii']
+  },
+  {
+    id: 'scribble',
+    name: 'Writer Studio',
+    description: 'AI assistant for rephrasing, resumes, and cover letters.',
+    category: 'documents',
+    icon: Wand2,
     tags: ['writing', 'rephrase', 'editor']
   },
   {
     id: 'pdf-tools',
     name: 'PDF Power Tools',
-    description: 'Merge, split, compress, and rotate PDFs entirely in-browser.',
+    description: 'Merge and split PDF documents entirely in-browser.',
     category: 'documents',
     icon: Scissors,
-    isPro: false,
     tags: ['pdf', 'utility', 'offline']
   },
-
-  // --- CATEGORY C: IMAGES & GRAPHICS ---
   {
-    id: 'clear',
-    name: 'Verynt Clear',
-    description: 'AI background remover and object eraser with high-res export.',
-    category: 'images',
-    icon: ImageIcon,
-    isPro: false,
-    models: ['bria-rmbg-1.4'],
-    tags: ['vision', 'edit', 'bg-removal']
+    id: 'pdf-compress',
+    name: 'PDF Compressor',
+    description: 'Reduce PDF file size locally without losing quality.',
+    category: 'documents',
+    icon: FileArchive,
+    tags: ['pdf', 'utility']
   },
   {
-    id: 'scale',
-    name: 'Verynt Scale',
-    description: 'Image super-resolution upscaler up to 4x sharpening.',
-    category: 'images',
-    icon: Maximize,
-    isPro: false,
-    models: ['esrgan-light'],
-    tags: ['vision', 'upscale', 'enhance']
-  },
-  {
-    id: 'ocr',
-    name: 'Verynt OCR',
-    description: 'Extract structured text from scans and receipts with 99% accuracy.',
-    category: 'images',
-    icon: Search,
-    isPro: false,
-    models: ['tesseract'],
-    tags: ['ocr', 'vision', 'extraction']
+    id: 'pdf-extract',
+    name: 'PDF Extractor',
+    description: 'Extract specific pages or images from any PDF file.',
+    category: 'documents',
+    icon: FileOutput,
+    tags: ['pdf', 'utility']
   },
 
-  // --- CATEGORY D: STUDENT & ACADEMIC ---
+  // --- ACADEMIC STUDIO ---
   {
     id: 'student-hub',
     name: 'Student Hub',
-    description: 'Flashcard generators, quiz creators, and citation builders.',
+    description: 'Create study flashcards and quizzes from your notes.',
     category: 'student',
     icon: GraduationCap,
-    isPro: false,
     tags: ['study', 'academic', 'flashcards']
   },
   {
     id: 'math-solver',
     name: 'Math AI Solver',
-    description: 'Solve equations and graph functions locally with step-by-step logic.',
+    description: 'Solve complex equations with step-by-step logic.',
     category: 'student',
     icon: TrendingUp,
-    isPro: true,
-    tags: ['math', 'solver', 'academic']
+    tags: ['math', 'solver']
+  },
+  {
+    id: 'citation-gen',
+    name: 'Citation Gen',
+    description: 'Generate APA/MLA citations for research papers.',
+    category: 'student',
+    icon: BookOpen,
+    tags: ['academic', 'citation']
   },
 
-  // --- CATEGORY E: DEVELOPER UTILITIES ---
+  // --- DEVELOPER STUDIO ---
   {
     id: 'dev-utils',
-    name: 'Developer Utilities',
-    description: 'JSON formatters, Regex builders, and SQL compilers.',
+    name: 'Developer Tools',
+    description: 'Essential formatters for JSON, Base64, and Regex.',
     category: 'developer',
     icon: Terminal,
-    isPro: false,
     tags: ['dev', 'utility', 'json']
   },
   {
     id: 'code-explainer',
     name: 'Code Explainer',
-    description: 'Local AI code analysis and error explanation.',
+    description: 'Understand complex code blocks using local AI models.',
     category: 'developer',
     icon: Code,
-    isPro: true,
-    models: ['qwen-0.5b'],
     tags: ['dev', 'ai', 'debugging']
   },
 
-  // --- CATEGORY F: TRANSLATION ---
+  // --- TRANSLATION STUDIO ---
   {
     id: 'translator',
-    name: 'Verynt Translator',
-    description: 'Multi-language offline translator for documents and text.',
+    name: 'Signal Translator',
+    description: 'Neural multi-language translation for text and docs.',
     category: 'translation',
     icon: Languages,
-    isPro: false,
-    models: ['multilingual-t5'],
-    tags: ['translation', 'multilingual', 'offline']
+    tags: ['translation', 'multilingual']
+  },
+  {
+    id: 'pdf-translator',
+    name: 'PDF Translator',
+    description: 'Translate entire PDF documents while keeping layout.',
+    category: 'translation',
+    icon: FileDigit,
+    tags: ['translation', 'pdf']
   }
 ];
 
 export const CATEGORIES = [
-  { id: 'audio', name: 'Audio & Speech', icon: FileAudio },
-  { id: 'documents', name: 'Text & Documents', icon: FileText },
-  { id: 'images', name: 'Images & Graphics', icon: ImageIcon },
-  { id: 'student', name: 'Student Tools', icon: GraduationCap },
-  { id: 'developer', name: 'Developer Tools', icon: Terminal },
-  { id: 'translation', name: 'Translation', icon: Languages }
+  { id: 'audio', name: 'Acoustic Studio', icon: FileAudio },
+  { id: 'images', name: 'Visual Studio', icon: ImageIcon },
+  { id: 'documents', name: 'Semantic Studio', icon: FileText },
+  { id: 'student', name: 'Academic Studio', icon: GraduationCap },
+  { id: 'developer', name: 'Developer Studio', icon: Terminal },
+  { id: 'translation', name: 'Translation Studio', icon: Languages }
 ];
 
 export const getToolById = (id) => TOOLS_REGISTRY.find((t) => t.id === id);
@@ -204,3 +239,5 @@ export const getToolsByCategory = (category) => TOOLS_REGISTRY.filter((t) => t.c
 export const getAllTools = () => TOOLS_REGISTRY;
 
 export default TOOLS_REGISTRY;
+
+import { Sparkles, MessageSquare, Layers, Wand2 } from 'lucide-react';

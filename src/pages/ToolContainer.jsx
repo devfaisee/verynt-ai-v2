@@ -7,15 +7,41 @@ import { Loader2, ChevronLeft, Share2, Info, Maximize2, ShieldCheck, Zap, Databa
 import { motion } from 'framer-motion';
 
 const toolComponents = {
+  // Acoustic
   whisper: lazy(() => import('../tools/audio/WhisperTool')),
   voiceforge: lazy(() => import('../tools/audio/VoiceForgeTool')),
-  docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
-  redact: lazy(() => import('../tools/documents/RedactTool')),
+  audioscribe: lazy(() => import('../tools/audio/AudioScribeTool')),
+  
+  // Visual
   clear: lazy(() => import('../tools/images/ClearTool')),
   scale: lazy(() => import('../tools/images/ScaleTool')),
   ocr: lazy(() => import('../tools/images/OCRTool')),
-  'dev-utils': lazy(() => import('../tools/developer/DevTools')),
+  handwriting: lazy(() => import('../tools/ocr/HandwritingTool')),
+  'id-scanner': lazy(() => import('../tools/ocr/IDScannerTool')),
+  'heic-converter': lazy(() => import('../tools/images/HEICConverterTool')),
+  
+  // Semantic
+  docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
+  redact: lazy(() => import('../tools/documents/RedactTool')),
+  scribble: lazy(() => import('../tools/documents/ScribbleTool')),
+  'pdf-tools': lazy(() => import('../tools/documents/PDFTools')),
+  'pdf-compress': lazy(() => import('../tools/documents/PDFCompressTool')),
+  'pdf-extract': lazy(() => import('../tools/documents/PDFExtractorTool')),
+  
+  // Academic
   'student-hub': lazy(() => import('../tools/student/StudentTools')),
+  'math-solver': lazy(() => import('../tools/student/MathSolverTool')),
+  'citation-gen': lazy(() => import('../tools/student/CitationGenTool')),
+  
+  // Developer
+  'dev-utils': lazy(() => import('../tools/developer/DevTools')),
+  'code-explainer': lazy(() => import('../tools/developer/CodeExplainerTool')),
+  
+  // Translation
+  translator: lazy(() => import('../tools/translation/TranslatorTool')),
+  'pdf-translator': lazy(() => import('../tools/translation/PDFTranslatorTool')),
+  
+  // System
   'model-manager': lazy(() => import('./ModelManager'))
 };
 
@@ -108,7 +134,7 @@ export default function ToolContainer() {
             </div>
             <div className="flex items-center gap-2">
                <Info className="w-4 h-4" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">v4.1.0 Studio</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">v4.2.0 Studio</span>
             </div>
          </div>
          <p className="text-[11px] font-medium max-w-md text-center md:text-right">

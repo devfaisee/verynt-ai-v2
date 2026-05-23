@@ -1,35 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, FileAudio, FileText, Eye, Image as ImageIcon, Cpu, Award, HardDrive, Terminal, GraduationCap, Search, Scissors, ArrowRight, Layers, ShieldCheck, Zap, Mic, Volume2, Wand2, Languages, TrendingUp, History, Database, Code, Briefcase, FileUser, Mail } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Database, Zap, Cpu } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
-
-const categories = [
-  { id: 'audio', name: 'Acoustic Studio', desc: 'Professional audio transcription and neural speech synthesis.', icon: FileAudio },
-  { id: 'vision', name: 'Visual Studio', desc: 'High-fidelity computer vision and image processing units.', icon: ImageIcon },
-  { id: 'logic', name: 'Semantic Studio', desc: 'Intelligent document analysis and writing automation.', icon: FileText }
-];
-
-const tools = [
-  // Acoustic
-  { id: 'whisper', name: 'Whisper Transcribe', desc: 'Turn any voice recording into text with 99% accuracy.', icon: Mic, cat: 'audio' },
-  { id: 'voiceforge', name: 'VoiceForge TTS', desc: 'Convert text into natural human speech instantly.', icon: Volume2, cat: 'audio' },
-  { id: 'audioscribe', name: 'AudioScribe AI', desc: 'Auto-generate Jira tickets and meeting notes from audio.', icon: Sparkles, cat: 'audio' },
-  
-  // Visual
-  { id: 'clear', name: 'Vision Background', desc: 'Instantly remove and swap image backgrounds locally.', icon: ImageIcon, cat: 'vision' },
-  { id: 'scale', name: 'Vision Upscaler', desc: 'Multiply image resolution up to 4x with neural sharpening.', icon: Layers, cat: 'vision' },
-  { id: 'ocr', name: 'Vision OCR', desc: 'Scan and extract text from receipts and screenshots.', icon: Search, cat: 'vision' },
-  
-  // Semantic
-  { id: 'docuchat', name: 'DocuChat AI', desc: 'Chat with your PDF files and get executive summaries.', icon: MessageSquare, cat: 'logic' },
-  { id: 'redact', name: 'Privacy Redact', desc: 'Mask sensitive IDs and credit cards in your documents.', icon: ShieldCheck, cat: 'logic' },
-  { id: 'scribble', name: 'Writer Studio', desc: 'AI assistant for rephrasing, resumes, and cover letters.', icon: Wand2, cat: 'logic' },
-  { id: 'dev-utils', name: 'Developer Tools', desc: 'Essential formatters for JSON, Base64, and Regex.', icon: Terminal, cat: 'logic' },
-  { id: 'student-hub', name: 'Student Hub', desc: 'Create study flashcards and quizzes from your notes.', icon: GraduationCap, cat: 'logic' }
-];
-
-import { MessageSquare } from 'lucide-react';
+import { TOOLS_REGISTRY, CATEGORIES } from '../tools/REGISTRY';
 
 const container = {
   hidden: { opacity: 0 },
@@ -44,10 +18,10 @@ const item = {
 export default function Dashboard() {
   return (
     <div className="space-y-32">
-      <SEO title="Studio Explorer" description="Professional local-first AI tools for everyone." />
+      <SEO title="Studio Explorer" description="Bespoke local-first AI tools for everyone." />
       
-      {/* Action-Oriented Hero */}
-      <section className="max-w-4xl mx-auto text-center space-y-10 py-16">
+      {/* Editorial Hero */}
+      <section className="max-w-4xl mx-auto text-center space-y-12 py-20">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -64,48 +38,52 @@ export default function Dashboard() {
         </h1>
         
         <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-          No cloud uploads. No subscription fees. Just high-performance AI tools that respect your privacy.
+          No cloud uploads. No subscription fees. Just high-performance AI tools that respect your privacy and run at native speed.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10">
-          <button className="pill-button pill-button-primary h-16 px-12 text-lg shadow-[0_20px_50px_rgba(255,255,255,0.1)]">Start Exploring</button>
-          <Link to="/tool/model-manager" className="pill-button pill-button-ghost h-16 px-12 text-lg">Engine Stats</Link>
+          <button onClick={() => document.getElementById('explorer').scrollIntoView({ behavior: 'smooth' })} className="pill-button pill-button-primary h-16 px-12 text-lg shadow-[0_20px_50px_rgba(255,255,255,0.1)]">Start Exploring</button>
+          <Link to="/tool/model-manager" className="pill-button pill-button-ghost h-16 px-12 text-lg">Registry Stats</Link>
         </div>
       </section>
 
-      {/* Simplified Tool Grid */}
+      {/* Dynamic Tool Explorer */}
       <motion.div 
+        id="explorer"
         variants={container}
         initial="hidden"
         animate="show"
-        className="space-y-32"
+        className="space-y-40"
       >
-        {categories.map(cat => (
+        {CATEGORIES.map(cat => (
           <section key={cat.id} className="space-y-16">
-            <motion.div variants={item} className="space-y-3 border-l-2 border-[#00f2fe] pl-8">
-                <h2 className="text-5xl font-bold text-white tracking-tight">{cat.name}</h2>
-                <p className="text-xl text-slate-500 font-medium">{cat.desc}</p>
+            <motion.div variants={item} className="space-y-4 border-l-4 border-white/10 pl-10">
+                <div className="flex items-center gap-4">
+                   <cat.icon className="w-8 h-8 text-[#00f2fe]" />
+                   <h2 className="text-5xl font-black text-white tracking-tight">{cat.name}</h2>
+                </div>
+                <p className="text-xl text-slate-500 font-medium max-w-2xl">High-performance local processing modules for {cat.id} automation.</p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {tools.filter(t => t.cat === cat.id).map(tool => (
+              {TOOLS_REGISTRY.filter(t => t.category === cat.id).map(tool => (
                 <motion.div key={tool.id} variants={item}>
                   <Link 
                     to={`/tool/${tool.id}`}
-                    className="glass-card p-10 group flex flex-col justify-between h-[340px] hover:bg-white/[0.03] transition-all"
+                    className="glass-card p-12 group flex flex-col justify-between h-[380px] hover:bg-white/[0.03] transition-all"
                   >
-                    <div className="space-y-8">
-                       <div className="w-16 h-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white transition-all group-hover:text-black text-slate-400">
+                    <div className="space-y-10">
+                       <div className="w-16 h-16 rounded-[28px] bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white transition-all group-hover:text-black text-slate-400">
                           <tool.icon className="w-8 h-8" />
                        </div>
                        <div className="space-y-3">
-                          <h4 className="text-2xl font-bold text-white tracking-tight">{tool.name}</h4>
-                          <p className="text-sm text-slate-500 font-medium leading-relaxed">{tool.desc}</p>
+                          <h4 className="text-2xl font-bold text-white tracking-tight leading-tight">{tool.name}</h4>
+                          <p className="text-sm text-slate-500 font-medium leading-relaxed">{tool.description}</p>
                        </div>
                     </div>
                     
-                    <div className="flex items-center gap-3 text-[10px] font-black text-slate-600 group-hover:text-[#00f2fe] transition-colors uppercase tracking-[0.3em]">
-                       Open Module <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-2" />
+                    <div className="flex items-center gap-3 text-[10px] font-black text-slate-600 group-hover:text-[#00f2fe] transition-colors uppercase tracking-[0.4em]">
+                       Initialize Studio <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-3" />
                     </div>
                   </Link>
                 </motion.div>
@@ -115,22 +93,25 @@ export default function Dashboard() {
         ))}
       </motion.div>
 
-      {/* Ad Banner - Revenue Engine */}
-      <section className="py-20">
-         <div className="glass-card h-40 w-full flex items-center justify-center relative overflow-hidden bg-white/[0.01]">
-            <div className="absolute top-4 right-6 text-[9px] font-black text-slate-700 uppercase tracking-widest">Sponsored Placement</div>
-            <div className="text-center space-y-2">
-               <p className="text-lg font-bold text-slate-400">Support Verynt Studio</p>
-               <p className="text-sm text-slate-600 uppercase tracking-widest font-black">Ad Content Placeholder</p>
+      {/* Ad Placement: Global Footer Banner */}
+      <section className="py-20 border-y border-white/5 bg-white/[0.01]">
+         <div className="studio-container flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="space-y-2 text-center md:text-left">
+               <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Sponsored Placement</p>
+               <h3 className="text-2xl font-bold text-white">Support Local AI Open-Source</h3>
+               <p className="text-sm text-slate-500 font-medium">Your non-intrusive support helps us keep these tools free and private.</p>
+            </div>
+            <div className="w-full md:w-[400px] h-32 glass-card flex items-center justify-center border-dashed">
+               <p className="text-xs font-black text-slate-700 uppercase tracking-widest italic">Ad Space Buffer</p>
             </div>
          </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-16 py-32 border-t border-white/5">
-           <TrustItem icon={ShieldCheck} title="Strictly Local" desc="Your data is processed in your device memory. We never see your files." />
-           <TrustItem icon={Database} title="WASM & WebGPU" desc="Native hardware performance directly in your modern web browser." />
-           <TrustItem icon={Zap} title="Instant Speed" desc="No waiting for server queues or API responses. Results are immediate." />
+      {/* Technical Manifesto */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-16 py-32">
+           <TrustItem icon={ShieldCheck} title="Total Isolation" desc="Compute occurs within the browser V8 sandbox. Data never leaves physical memory." />
+           <TrustItem icon={Database} title="Weight Registry" desc="Manage local neural weights for Whisper, BERT, and Llama directly in your dashboard." />
+           <TrustItem icon={Zap} title="Native Performance" desc="Leverage WebGPU and WASM SIMD for hardware-accelerated inference speeds." />
       </section>
     </div>
   );
@@ -138,9 +119,11 @@ export default function Dashboard() {
 
 function TrustItem({ icon: Icon, title, desc }) {
   return (
-    <div className="space-y-6">
-       <Icon className="w-10 h-10 text-white" />
-       <div className="space-y-2">
+    <div className="space-y-6 text-center md:text-left">
+       <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto md:mx-0 shadow-2xl">
+          <Icon className="w-8 h-8 text-white" />
+       </div>
+       <div className="space-y-3">
           <h3 className="text-2xl font-bold text-white tracking-tight">{title}</h3>
           <p className="text-sm text-slate-500 font-medium leading-relaxed">{desc}</p>
        </div>
