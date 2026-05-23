@@ -1,83 +1,122 @@
+@import "tailwindcss";
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  /* Cupertino Glass Palette - Sophisticated Warm Grays */
-  --bg-app: #0c0c0d;
-  --bg-glass: rgba(20, 20, 22, 0.65);
-  --bg-glass-heavy: rgba(10, 10, 11, 0.85);
+@theme {
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-glass-hover: rgba(255, 255, 255, 0.15);
+  --color-bg-app: #0c0c0d;
+  --color-bg-glass: rgba(20, 20, 22, 0.65);
+  --color-bg-glass-heavy: rgba(10, 10, 11, 0.85);
   
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1a6;
-  --text-muted: #6e6e73;
+  --color-border-glass: rgba(255, 255, 255, 0.08);
+  --color-border-glass-hover: rgba(255, 255, 255, 0.15);
   
-  --acc-accent: #0071e3; /* Apple-style Blue */
-  --acc-soft-purple: #bf5af2;
-  --acc-soft-teal: #64d2ff;
-
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  /* Elevation Materials */
-  --shadow-diffuse: 0 30px 60px rgba(0, 0, 0, 0.3);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a6;
+  --color-text-muted: #6e6e73;
+  
+  --color-acc-accent: #0071e3;
+  --color-acc-soft-purple: #bf5af2;
+  --color-acc-soft-teal: #64d2ff;
 }
 
 @layer base {
   body {
-    @apply bg-[var(--bg-app)] text-[var(--text-primary)] font-sans antialiased overflow-x-hidden;
+    background-color: var(--color-bg-app);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
     background-image: 
       radial-gradient(at 0% 0%, rgba(191, 90, 242, 0.05) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(100, 210, 255, 0.05) 0px, transparent 50%);
   }
 
   h1, h2, h3, h4 {
-    @apply font-serif tracking-tight leading-tight;
+    font-family: var(--font-serif);
+    letter-spacing: -0.025em;
+    line-height: 1.1;
   }
 }
 
 @layer components {
   /* Bespoke Glass Primitives */
   .glass-card {
-    @apply backdrop-blur-[40px] bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-[32px] transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)];
-    box-shadow: var(--shadow-diffuse);
+    background-color: var(--color-bg-glass);
+    backdrop-filter: blur(40px);
+    border: 1px solid var(--color-border-glass);
+    border-radius: 32px;
+    transition: all 500ms cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
   }
 
   .glass-card:hover {
-    @apply border-[var(--border-glass-hover)] -translate-y-1;
+    border-color: var(--color-border-glass-hover);
+    transform: translateY(-4px);
     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
   }
 
   .glass-island {
-    @apply backdrop-blur-3xl bg-[var(--bg-glass-heavy)] border border-[var(--border-glass)] rounded-full px-6 py-2 shadow-2xl;
+    background-color: var(--color-bg-glass-heavy);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--color-border-glass);
+    border-radius: 9999px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   /* Interaction Styles */
   .pill-button {
-    @apply px-8 h-12 flex items-center justify-center rounded-full font-sans font-semibold text-sm transition-all duration-300 active:scale-95;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 300ms;
+  }
+
+  .pill-button:active {
+    scale: 0.95;
   }
 
   .pill-button-primary {
-    @apply bg-white text-black hover:bg-opacity-90 shadow-xl;
+    background-color: white;
+    color: black;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .pill-button-primary:hover {
+    opacity: 0.9;
   }
 
   .pill-button-ghost {
-    @apply bg-white/5 text-white border border-white/10 hover:bg-white/10;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .pill-button-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
   /* Layout Constants */
   .studio-container {
-    @apply max-w-7xl mx-auto px-6 py-12;
-  }
-
-  .studio-canvas {
-    @apply w-full min-h-[600px] flex flex-col items-center justify-center p-12 bg-black/20 rounded-[48px] border border-white/5;
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 }
 
@@ -86,18 +125,19 @@
   width: 5px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/10 rounded-full;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-white/20;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Animations */
 .animate-in {
-  animation: slide-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: slide-up 800ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes slide-up {
@@ -105,6 +145,18 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.animate-float {
+  animation: float 6s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-br from-white to-white/40;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to bottom right, white, rgba(255, 255, 255, 0.4));
 }
