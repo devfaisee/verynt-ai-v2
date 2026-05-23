@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, ShieldCheck, Database, Zap, Cpu } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Database, Zap, Cpu, FileText, FileAudio, ImageIcon, Search, PenTool, GraduationCap, Terminal, Globe, Gavel } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { TOOLS_REGISTRY, CATEGORIES } from '../tools/REGISTRY';
@@ -28,17 +28,18 @@ export default function Dashboard() {
           className="inline-block"
         >
           <span className="text-[10px] font-black tracking-[0.4em] text-[#00f2fe] uppercase bg-[#00f2fe]/5 px-6 py-2.5 rounded-full border border-[#00f2fe]/20">
-            Professional Studio Suite
+            Precision Intelligence
           </span>
         </motion.div>
         
         <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-[0.85] text-white">
-          AI Tools That<br />
-          <span className="text-white/20 italic">Run Locally.</span>
+          Absolute Privacy.<br />
+          <span className="text-white/20 italic">Native Speed.</span>
         </h1>
         
         <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-          No cloud uploads. No subscription fees. Just high-performance AI tools that respect your privacy and run at native speed.
+          Experience world-class AI tools running directly in your browser memory. 
+          Zero server overhead. Zero data exposure.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10">
@@ -62,7 +63,7 @@ export default function Dashboard() {
                    <cat.icon className="w-8 h-8 text-[#00f2fe]" />
                    <h2 className="text-5xl font-black text-white tracking-tight">{cat.name}</h2>
                 </div>
-                <p className="text-xl text-slate-500 font-medium max-w-2xl">High-performance local processing modules for {cat.id} automation.</p>
+                <p className="text-xl text-slate-500 font-medium max-w-2xl">{cat.desc}</p>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
