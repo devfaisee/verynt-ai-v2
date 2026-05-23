@@ -6,22 +6,31 @@ import PricingModal from '../components/PricingModal';
 
 export default function RootLayout() {
   return (
-    <div className="min-h-screen flex flex-col justify-between relative overflow-hidden pb-12">
-      {/* Dynamic Background Neon Ambient Glows */}
-      <div className="ambient-glow-teal top-[10%] left-[-10%]" />
-      <div className="ambient-glow-violet bottom-[20%] right-[-10%]" />
+    <div className="min-h-screen selection:bg-[#00f2fe]/30 selection:text-white">
+      {/* Premium Background Elements */}
+      <div className="site-bg" />
+      <div className="grid-overlay" />
 
-      {/* Floating Header */}
+      {/* Persistent Navigation */}
       <Navigation />
 
-      {/* Main Core Container */}
-      <main className="flex-1 w-[calc(100%-2rem)] max-w-7xl mx-auto my-6 px-4">
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-6 py-12 md:py-20 relative z-10">
         <Outlet />
       </main>
 
-      {/* Global Interactive Context Elements */}
+      {/* Global Overlays */}
       <Loader />
       <PricingModal />
+
+      {/* Footer Design */}
+      <footer className="max-w-7xl mx-auto px-6 py-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-slate-500 font-medium">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          Systems operational — 100% Client-Side AI
+        </div>
+        <p>© 2026 Verynt. Built for ultimate privacy.</p>
+      </footer>
     </div>
   );
 }
