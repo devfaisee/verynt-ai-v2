@@ -1,6 +1,6 @@
 /**
  * Tools Registry: The definitive catalog for Verynt Studio.
- * Expanded to 20+ Categories and 100+ Tools as specified in the Master Blueprints.
+ * expanded to 20+ Categories and 100+ Tools as specified in the Master Blueprints.
  */
 
 import {
@@ -11,7 +11,8 @@ import {
   FileArchive, RefreshCw, MessageSquare, Sparkles, Layers, Wand2,
   Scale, Calculator, FileSearch, ShieldAlert, FileSignature, 
   Gavel, UserSearch, Video, Cpu, HardDrive, Smartphone, Users,
-  Workflow, Database, CloudOff, Target, BarChart3, Binary, ListTodo
+  Workflow, Database, CloudOff, Target, BarChart3, Binary, ListTodo,
+  Lightbulb
 } from 'lucide-react';
 
 export const TOOLS_REGISTRY = [
@@ -95,5 +96,3 @@ export const getToolsByCategory = (category) => TOOLS_REGISTRY.filter((t) => t.c
 export const getAllTools = () => TOOLS_REGISTRY;
 
 export default TOOLS_REGISTRY;
-
-import { Lightbulb, MessageSquare } from 'lucide-react';
