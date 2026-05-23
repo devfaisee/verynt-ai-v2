@@ -3,23 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import SEO from '../components/SEO';
 import { getToolById } from '../tools/REGISTRY';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, Share2, Info, Maximize2, ShieldCheck, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-// Lazy load tool components based on the registry structure
 const toolComponents = {
   whisper: lazy(() => import('../tools/audio/WhisperTool')),
   voiceforge: lazy(() => import('../tools/audio/VoiceForgeTool')),
-  audioscribe: lazy(() => import('../tools/audio/AudioScribeTool')),
-  redact: lazy(() => import('../tools/documents/RedactTool')),
   docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
-  scribble: lazy(() => import('../tools/documents/ScribbleTool')),
-  'pdf-tools': lazy(() => import('../tools/documents/PDFTools')),
+  redact: lazy(() => import('../tools/documents/RedactTool')),
   clear: lazy(() => import('../tools/images/ClearTool')),
   scale: lazy(() => import('../tools/images/ScaleTool')),
   ocr: lazy(() => import('../tools/images/OCRTool')),
-  'student-hub': lazy(() => import('../tools/student/StudentTools')),
   'dev-utils': lazy(() => import('../tools/developer/DevTools')),
-  translator: lazy(() => import('../tools/translation/TranslatorTool'))
+  'student-hub': lazy(() => import('../tools/student/StudentTools'))
 };
 
 export default function ToolContainer() {
@@ -27,69 +23,87 @@ export default function ToolContainer() {
   const navigate = useNavigate();
   const { incrementUsage, triggerLoader } = useApp();
 
-  const toolMetadata = getToolById(toolId);
+  const tool = getToolById(toolId);
   const ToolComponent = toolComponents[toolId];
 
-  if (!toolMetadata || !ToolComponent) {
+  if (!tool || !ToolComponent) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <h2 className="text-2xl font-bold text-white">Tool Not Found</h2>
-        <button onClick={() => navigate('/')} className="btn-ghost">Back to Dashboard</button>
+      <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
+        <h2 className="text-4xl font-bold text-white tracking-tight">Studio Module Not Found</h2>
+        <button onClick={() => navigate('/')} className="pill-button pill-button-primary">Return to Explorer</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <SEO title={toolMetadata.name} description={toolMetadata.description} />
+    <div className="space-y-12">
+      <SEO title={tool.name} description={tool.description} />
       
-      {/* Tool Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
+      {/* Studio Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-white/5 pb-12">
+        <div className="flex items-center gap-6">
           <button 
             onClick={() => navigate('/')}
-            className="p-2 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
+            className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all text-slate-400 hover:text-white"
           >
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <toolMetadata.icon className="w-8 h-8 text-[#00f2fe]" />
-              {toolMetadata.name}
+            <h1 className="text-4xl font-bold text-white tracking-tight flex items-center gap-4">
+              <tool.icon className="w-10 h-10 text-white" />
+              {tool.name}
             </h1>
-            <p className="text-slate-400 font-medium">{toolMetadata.description}</p>
+            <p className="text-slate-500 font-medium text-lg">{tool.description}</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          {toolMetadata.tags.map(tag => (
-            <span key={tag} className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              {tag}
-            </span>
-          ))}
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#00f2fe]/5 border border-[#00f2fe]/20 text-[#00f2fe] text-[10px] font-black uppercase tracking-widest">
+              <ShieldCheck className="w-3.5 h-3.5" /> Private Buffer
+           </div>
+           <button className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+              <Share2 className="w-5 h-5" />
+           </button>
         </div>
       </div>
 
-      {/* Workspace */}
-      <div className="glass-panel p-8 min-h-[600px]">
-        <Suspense fallback={
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-            <Loader2 className="w-10 h-10 text-[#00f2fe] animate-spin" />
-            <p className="text-slate-500 font-bold uppercase tracking-tighter">Initializing Module...</p>
-          </div>
-        }>
-          <ToolComponent 
-            incrementUsage={incrementUsage} 
-            triggerLoader={triggerLoader}
-          />
-        </Suspense>
-      </div>
+      {/* Main Studio Workspace */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="glass-card overflow-hidden"
+      >
+        <div className="bg-black/20 p-8 lg:p-16">
+          <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
+              <div className="w-16 h-16 rounded-full border-t-2 border-white animate-spin opacity-20" />
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Calibrating Neural Pathways...</p>
+            </div>
+          }>
+            <ToolComponent 
+              incrementUsage={incrementUsage} 
+              triggerLoader={triggerLoader}
+            />
+          </Suspense>
+        </div>
+      </motion.div>
 
-      {/* Disclaimer */}
-      <div className="text-center p-6 border-t border-white/5">
-        <p className="text-xs text-slate-600 font-medium">
-          Processing is performed entirely in your browser buffer. Data is never transmitted to Verynt servers.
-        </p>
+      {/* Bottom Metadata / Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600">
+         <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+               <Zap className="w-4 h-4" />
+               <span className="text-[10px] font-bold uppercase tracking-widest">Hardware Enabled</span>
+            </div>
+            <div className="flex items-center gap-2">
+               <Info className="w-4 h-4" />
+               <span className="text-[10px] font-bold uppercase tracking-widest">v4.0.2 Studio</span>
+            </div>
+         </div>
+         <p className="text-[11px] font-medium max-w-md text-center md:text-right">
+            All AI operations are strictly executed within your browser's private V8 environment. Zero telemetry is transmitted.
+         </p>
       </div>
     </div>
   );

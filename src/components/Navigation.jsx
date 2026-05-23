@@ -1,61 +1,73 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Shield, Wifi, WifiOff, Sparkles, Award } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Shield, Wifi, WifiOff, Award, LayoutGrid, Cpu } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { motion } from 'framer-motion';
 
 export default function Navigation() {
-  const { isOffline, setIsOffline, setIsPricingOpen, usageCount } = useApp();
+  const { isOffline, setIsOffline, setIsPricingOpen } = useApp();
+  const location = useLocation();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 nav-blur">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center transition-transform group-hover:scale-110">
-            <Shield className="w-5 h-5 text-black" />
+    <div className="fixed top-8 left-0 right-0 z-[100] flex justify-center pointer-events-none">
+      <motion.nav 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="glass-island flex items-center gap-2 pointer-events-auto h-14"
+      >
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2 px-3 group">
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center transition-transform group-hover:scale-110">
+            <Shield className="w-4 h-4 text-black" />
           </div>
-          <span className="font-display text-2xl font-bold tracking-tight text-white">
-            verynt
-          </span>
+          <span className="font-serif text-xl font-bold tracking-tighter text-white">verynt</span>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-400">
-          <Link to="/" className="hover:text-white transition-colors">Explorer</Link>
-          <a href="#" className="hover:text-white transition-colors">Privacy</a>
-          <a href="#" className="hover:text-white transition-colors">API</a>
-          <div className="h-4 w-[1px] bg-white/10" />
-          <div className="flex items-center gap-2 text-emerald-400">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Node Active
-          </div>
-        </div>
+        <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
-        {/* Right Controls */}
-        <div className="flex items-center gap-4">
-          {/* Offline Toggle */}
-          <button
+        {/* Links */}
+        <div className="flex items-center gap-1">
+          <NavLink to="/" active={location.pathname === '/'}>
+            <LayoutGrid className="w-3.5 h-3.5" /> Explorer
+          </NavLink>
+          <button 
             onClick={() => setIsOffline(!isOffline)}
-            className={`hidden sm:flex items-center gap-2 text-[11px] font-bold px-4 py-2 rounded-full border transition-all ${
-              isOffline 
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' 
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black tracking-widest transition-all ${
+              isOffline ? 'text-rose-500 bg-rose-500/10' : 'text-slate-400 hover:text-white'
             }`}
           >
-            {isOffline ? <WifiOff className="w-3 h-3" /> : <Wifi className="w-3 h-3" />}
-            {isOffline ? 'OFFLINE' : 'ONLINE'}
-          </button>
-
-          {/* Pricing CTA */}
-          <button 
-            onClick={() => setIsPricingOpen(true)}
-            className="btn-primary flex items-center gap-2 h-10 px-6"
-          >
-            <Award className="w-4 h-4" />
-            Upgrade
+            {isOffline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
+            {isOffline ? 'OFFLINE' : 'LIVE'}
           </button>
         </div>
-      </div>
-    </nav>
+
+        <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
+        {/* Action */}
+        <button 
+          onClick={() => setIsPricingOpen(true)}
+          className="flex items-center gap-2 pl-3 pr-2 group h-10 rounded-full"
+        >
+           <span className="text-[10px] font-black tracking-[0.2em] text-slate-500 group-hover:text-white transition-colors">PRO</span>
+           <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white transition-all group-hover:text-black text-white">
+              <Award className="w-4 h-4" />
+           </div>
+        </button>
+      </motion.nav>
+    </div>
+  );
+}
+
+function NavLink({ to, children, active }) {
+  return (
+    <Link 
+      to={to} 
+      className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase transition-all ${
+        active ? 'text-white bg-white/10' : 'text-slate-500 hover:text-slate-300'
+      }`}
+    >
+      {children}
+    </Link>
   );
 }
