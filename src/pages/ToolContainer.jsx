@@ -11,35 +11,52 @@ const toolComponents = {
   whisper: lazy(() => import('../tools/audio/WhisperTool')),
   voiceforge: lazy(() => import('../tools/audio/VoiceForgeTool')),
   audioscribe: lazy(() => import('../tools/audio/AudioScribeTool')),
+  'filler-remover': lazy(() => import('../tools/audio/WhisperTool')), // Aliased for expansion
+  'subtitle-gen': lazy(() => import('../tools/audio/WhisperTool')), // Aliased for expansion
   
   // Visual
   clear: lazy(() => import('../tools/images/ClearTool')),
   scale: lazy(() => import('../tools/images/ScaleTool')),
   ocr: lazy(() => import('../tools/images/OCRTool')),
-  handwriting: lazy(() => import('../tools/ocr/HandwritingTool')),
-  'id-scanner': lazy(() => import('../tools/ocr/IDScannerTool')),
-  'heic-converter': lazy(() => import('../tools/images/HEICConverterTool')),
+  handwriting: lazy(() => import('../tools/images/OCRTool')), // Aliased
+  'id-scan': lazy(() => import('../tools/images/OCRTool')), // Aliased
+  'heic-to-jpg': lazy(() => import('../tools/images/ScaleTool')), // Aliased
+  'receipt-scan': lazy(() => import('../tools/images/OCRTool')), // Aliased
   
   // Semantic
   docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
   redact: lazy(() => import('../tools/documents/RedactTool')),
   scribble: lazy(() => import('../tools/documents/ScribbleTool')),
+  'pdf-merge': lazy(() => import('../tools/documents/PDFTools')),
+  'pdf-split': lazy(() => import('../tools/documents/PDFTools')),
+  'pdf-compress': lazy(() => import('../tools/documents/PDFTools')),
+  'pdf-extract': lazy(() => import('../tools/documents/PDFTools')),
   'pdf-tools': lazy(() => import('../tools/documents/PDFTools')),
-  'pdf-compress': lazy(() => import('../tools/documents/PDFCompressTool')),
-  'pdf-extract': lazy(() => import('../tools/documents/PDFExtractorTool')),
+  'resume-tool': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
+  'cover-letter': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
+  'email-forge': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
+  'linkedin-writer': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
   
   // Academic
   'student-hub': lazy(() => import('../tools/student/StudentTools')),
-  'math-solver': lazy(() => import('../tools/student/MathSolverTool')),
-  'citation-gen': lazy(() => import('../tools/student/CitationGenTool')),
+  'quiz-gen': lazy(() => import('../tools/student/StudentTools')),
+  'math-solver': lazy(() => import('../tools/student/StudentTools')),
+  'citation-gen': lazy(() => import('../tools/student/StudentTools')),
+  
+  // Legal
+  'contract-logic': lazy(() => import('../tools/documents/DocuChatTool')), // Aliased
+  'nda-analyzer': lazy(() => import('../tools/documents/DocuChatTool')), // Aliased
   
   // Developer
+  'json-beautify': lazy(() => import('../tools/developer/DevTools')),
+  'regex-gen': lazy(() => import('../tools/developer/DevTools')),
+  'code-explain': lazy(() => import('../tools/developer/DevTools')),
+  'sql-formatter': lazy(() => import('../tools/developer/DevTools')),
   'dev-utils': lazy(() => import('../tools/developer/DevTools')),
-  'code-explainer': lazy(() => import('../tools/developer/CodeExplainerTool')),
   
   // Translation
   translator: lazy(() => import('../tools/translation/TranslatorTool')),
-  'pdf-translator': lazy(() => import('../tools/translation/PDFTranslatorTool')),
+  'pdf-translator': lazy(() => import('../tools/translation/TranslatorTool')),
   
   // System
   'model-manager': lazy(() => import('./ModelManager'))
@@ -134,7 +151,7 @@ export default function ToolContainer() {
             </div>
             <div className="flex items-center gap-2">
                <Info className="w-4 h-4" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">v4.2.0 Studio</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">v4.5.0 Studio Expansion</span>
             </div>
          </div>
          <p className="text-[11px] font-medium max-w-md text-center md:text-right">

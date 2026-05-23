@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, RefreshCw, Copy, Download, Wand2, ShieldCheck, Briefcase, FileUser, Mail } from 'lucide-react';
+import { PenTool, Copy, Wand2, ShieldCheck, Briefcase, FileText, CheckCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,7 +39,7 @@ export default function ScribbleTool() {
                {[
                  { id: 'rephrase', name: 'Smart Rephrase', icon: Wand2 },
                  { id: 'resume', name: 'Resume Improver', icon: Briefcase },
-                 { id: 'cover-letter', name: 'Cover Letter', icon: FileUser }
+                 { id: 'cover-letter', name: 'Cover Letter', icon: FileText }
                ].map(t => (
                  <button 
                    key={t.id}
