@@ -12,7 +12,7 @@ import {
   FileArchive, RefreshCw, MessageSquare, Sparkles, Layers, Wand2,
   Calculator, FileSearch, ShieldAlert, Video, Cpu, HardDrive, Smartphone, Users,
   Workflow, Database, CloudOff, Target, BarChart3, Binary, ListTodo,
-  Lightbulb, Mic2, FileSignature, Gavel, UserSearch, Box, Share2, Info
+  Lightbulb, Mic2, FileSignature, Gavel, UserSearch, Box, Share2, Info, UserCircle
 } from 'lucide-react';
 
 export const TOOLS_REGISTRY = [
