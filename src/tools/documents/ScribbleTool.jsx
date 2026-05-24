@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, Copy, Wand2, ShieldCheck, Briefcase, FileText, CheckCircle } from 'lucide-react';
+import { PenTool, RefreshCw, Copy, Download, Wand2, ShieldCheck, Briefcase, FileUser, Mail, LayoutGrid, Type, AlignLeft } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,24 +29,24 @@ export default function ScribbleTool() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
       
       {/* Studio Controls (Left) */}
-      <div className="lg:col-span-4 space-y-10">
+      <div className="lg:col-span-4 space-y-8 md:space-y-10">
          <div className="space-y-4">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Writer Module</h3>
-            <div className="glass-card p-6 space-y-2">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Writer Module</h3>
+            <div className="glass-card p-6 md:p-8 space-y-2">
                {[
                  { id: 'rephrase', name: 'Smart Rephrase', icon: Wand2 },
-                 { id: 'resume', name: 'Resume Improver', icon: Briefcase },
-                 { id: 'cover-letter', name: 'Cover Letter', icon: FileText }
+                 { id: 'resume', name: 'Resume Build', icon: Briefcase },
+                 { id: 'cover-letter', name: 'Cover Letter', icon: FileUser }
                ].map(t => (
                  <button 
                    key={t.id}
                    onClick={() => setMode(t.id)}
-                   className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-xs font-bold transition-all border ${mode === t.id ? 'bg-white text-black shadow-2xl border-white' : 'bg-transparent border-transparent text-slate-500 hover:text-white hover:bg-white/5'}`}
+                   className={`w-full flex items-center gap-4 px-5 py-3 md:py-4 rounded-xl md:rounded-2xl text-[10px] md:text-xs font-bold transition-all border ${mode === t.id ? 'bg-white text-black shadow-xl border-white' : 'bg-transparent border-transparent text-slate-500 hover:text-white hover:bg-white/5'}`}
                  >
-                    <t.icon className="w-4 h-4" />
+                    <t.icon className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     {t.name.toUpperCase()}
                  </button>
                ))}
@@ -54,17 +54,19 @@ export default function ScribbleTool() {
          </div>
 
          <div className="space-y-4 flex flex-col h-full">
-            <h3 className="text-xs font-black text-slate-700 uppercase tracking-[0.3em]">Source Data</h3>
-            <textarea 
-              value={text} 
-              onChange={(e) => setText(e.target.value)} 
-              className="w-full flex-1 min-h-[300px] bg-black/40 border border-white/5 rounded-[32px] p-8 font-medium text-sm text-slate-400 focus:outline-none focus:border-white/10 transition-all resize-none italic"
-              placeholder="Enter text or job description..."
-            />
+            <h3 className="text-[10px] md:text-xs font-black text-slate-700 uppercase tracking-[0.3em]">Source signal</h3>
+            <div className="flex-1 min-h-[250px] md:min-h-[350px] relative group">
+               <textarea 
+                 value={text} 
+                 onChange={(e) => setText(e.target.value)} 
+                 className="w-full h-full bg-black/40 border border-white/5 rounded-[28px] md:rounded-[32px] p-6 md:p-8 font-medium text-sm md:text-base text-slate-400 focus:outline-none focus:border-white/10 transition-all resize-none italic"
+                 placeholder="Enter raw sequence..."
+               />
+            </div>
             <button 
               onClick={processText}
               disabled={!text.trim() || isProcessing}
-              className="pill-button pill-button-primary w-full h-14 mt-4"
+              className="pill-button pill-button-primary w-full h-12 md:h-14 mt-2 uppercase tracking-widest text-[10px] md:text-xs"
             >
               {isProcessing ? "Synthesizing..." : "Execute Logic"}
             </button>
@@ -73,35 +75,40 @@ export default function ScribbleTool() {
 
       {/* Studio Output (Right) */}
       <div className="lg:col-span-8">
-         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden">
-            <div className="p-8 border-b border-white/5 flex items-center justify-between">
-               <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Neural Result</span>
+         <div className="h-full min-h-[450px] md:min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl">
+            <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <Type className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.2em]">Neural Output</span>
+               </div>
                {result && (
-                 <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all">
-                    {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                 </button>
+                 <div className="flex gap-2">
+                    <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                       {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                 </div>
                )}
             </div>
 
-            <div className="flex-1 p-12 relative">
+            <div className="flex-1 p-8 md:p-12 relative overflow-y-auto max-h-[500px] custom-scrollbar">
                <AnimatePresence mode="wait">
                  {result ? (
-                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full text-xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap select-all custom-scrollbar overflow-y-auto max-h-[400px]">
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full text-lg md:text-2xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap select-all italic">
                       {result}
                    </motion.div>
                  ) : (
-                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-20 py-48">
-                      <PenTool className="w-20 h-20" />
-                      <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Instruction</p>
+                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-10 py-24 md:py-32">
+                      <PenTool className="w-16 md:w-20 h-16 md:h-20" />
+                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-center">Awaiting Studio Directive</p>
                    </div>
                  )}
                </AnimatePresence>
             </div>
 
-            <div className="p-8 bg-white/[0.01] border-t border-white/5">
+            <div className="p-6 md:p-8 bg-white/[0.01] border-t border-white/5">
                <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500 opacity-50" />
-                  Processed locally • No cloud footprint
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 opacity-50 shrink-0" />
+                  Processed locally • 0% Cloud Footprint
                </div>
             </div>
          </div>
