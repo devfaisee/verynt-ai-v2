@@ -11,52 +11,45 @@ const toolComponents = {
   whisper: lazy(() => import('../tools/audio/WhisperTool')),
   voiceforge: lazy(() => import('../tools/audio/VoiceForgeTool')),
   audioscribe: lazy(() => import('../tools/audio/AudioScribeTool')),
-  'filler-remover': lazy(() => import('../tools/audio/WhisperTool')), // Aliased for expansion
-  'subtitle-gen': lazy(() => import('../tools/audio/WhisperTool')), // Aliased for expansion
+  audioforge: lazy(() => import('../tools/audioforge/AudioForgeTool')),
+  flow: lazy(() => import('../tools/flow/FlowTool')),
   
   // Visual
-  clear: lazy(() => import('../tools/images/ClearTool')),
+  clear: lazy(() => import('../tools/clear/ClearTool')),
   scale: lazy(() => import('../tools/images/ScaleTool')),
   ocr: lazy(() => import('../tools/images/OCRTool')),
-  handwriting: lazy(() => import('../tools/images/OCRTool')), // Aliased
-  'id-scan': lazy(() => import('../tools/images/OCRTool')), // Aliased
-  'heic-to-jpg': lazy(() => import('../tools/images/ScaleTool')), // Aliased
-  'receipt-scan': lazy(() => import('../tools/images/OCRTool')), // Aliased
+  handwriting: lazy(() => import('../tools/ocr/HandwritingTool')),
+  'id-scanner': lazy(() => import('../tools/ocr/IDScannerTool')),
+  'heic-converter': lazy(() => import('../tools/images/HEICConverterTool')),
+  'receipt-scan': lazy(() => import('../tools/ocr/ReceiptScannerTool')),
   
-  // Semantic
+  // Semantic / Docs
   docuchat: lazy(() => import('../tools/documents/DocuChatTool')),
   redact: lazy(() => import('../tools/documents/RedactTool')),
   scribble: lazy(() => import('../tools/documents/ScribbleTool')),
-  'pdf-merge': lazy(() => import('../tools/documents/PDFTools')),
-  'pdf-split': lazy(() => import('../tools/documents/PDFTools')),
-  'pdf-compress': lazy(() => import('../tools/documents/PDFTools')),
-  'pdf-extract': lazy(() => import('../tools/documents/PDFTools')),
-  'pdf-tools': lazy(() => import('../tools/documents/PDFTools')),
-  'resume-tool': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
-  'cover-letter': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
-  'email-forge': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
-  'linkedin-writer': lazy(() => import('../tools/documents/ScribbleTool')), // Aliased
+  'pdf-tools': lazy(() => import('../tools/pdf/PDFUtilsTool')),
+  'pdf-compress': lazy(() => import('../tools/documents/PDFCompressTool')),
+  'pdf-extract': lazy(() => import('../tools/documents/PDFExtractorTool')),
+  'pdf-merge': lazy(() => import('../tools/documents/PDFMergeTool')),
+  'pdf-split': lazy(() => import('../tools/documents/PDFMergeTool')),
   
   // Academic
   'student-hub': lazy(() => import('../tools/student/StudentTools')),
-  'quiz-gen': lazy(() => import('../tools/student/StudentTools')),
-  'math-solver': lazy(() => import('../tools/student/StudentTools')),
-  'citation-gen': lazy(() => import('../tools/student/StudentTools')),
-  
-  // Legal
-  'contract-logic': lazy(() => import('../tools/documents/DocuChatTool')), // Aliased
-  'nda-analyzer': lazy(() => import('../tools/documents/DocuChatTool')), // Aliased
+  'quiz-gen': lazy(() => import('../tools/student/QuizGenTool')),
+  'math-solver': lazy(() => import('../tools/student/MathSolverTool')),
+  'citation-gen': lazy(() => import('../tools/student/CitationGenTool')),
+  'flashcard-gen': lazy(() => import('../tools/student/FlashcardGenTool')),
   
   // Developer
-  'json-beautify': lazy(() => import('../tools/developer/DevTools')),
-  'regex-gen': lazy(() => import('../tools/developer/DevTools')),
-  'code-explain': lazy(() => import('../tools/developer/DevTools')),
-  'sql-formatter': lazy(() => import('../tools/developer/DevTools')),
   'dev-utils': lazy(() => import('../tools/developer/DevTools')),
+  'code-explainer': lazy(() => import('../tools/developer/CodeExplainerTool')),
+  'json-beautify': lazy(() => import('../tools/developer/JSONFormatterTool')),
+  'regex-gen': lazy(() => import('../tools/developer/RegexGenTool')),
+  'sql-formatter': lazy(() => import('../tools/developer/SQLFormatterTool')),
   
   // Translation
   translator: lazy(() => import('../tools/translation/TranslatorTool')),
-  'pdf-translator': lazy(() => import('../tools/translation/TranslatorTool')),
+  'pdf-translator': lazy(() => import('../tools/translation/PDFTranslatorTool')),
   
   // System
   'model-manager': lazy(() => import('./ModelManager'))
@@ -67,20 +60,21 @@ export default function ToolContainer() {
   const navigate = useNavigate();
   const { incrementUsage, triggerLoader } = useApp();
 
-  const tool = getToolById(toolId) || (toolId === 'model-manager' ? { name: 'Engine Manager', description: 'Local neural weight registry.', icon: Database, tags: ['system', 'cache'] } : null);
+  const tool = getToolById(toolId) || (toolId === 'model-manager' ? { name: 'Engine Manager', description: 'Local neural weight registry.', icon: Database, tags: ['system'] } : null);
   const ToolComponent = toolComponents[toolId];
 
   if (!tool || !ToolComponent) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] space-y-8">
         <h2 className="text-4xl font-bold text-white tracking-tight">Studio Module Not Found</h2>
+        <p className="text-slate-500">The module "{toolId}" could not be located in the current registry.</p>
         <button onClick={() => navigate('/')} className="pill-button pill-button-primary">Return to Explorer</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 min-h-screen">
       <SEO title={tool.name} description={tool.description} />
       
       {/* Studio Header Bar */}
@@ -118,11 +112,11 @@ export default function ToolContainer() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="glass-card overflow-hidden"
       >
-        <div className="bg-black/20 p-8 lg:p-16">
+        <div className="bg-black/20 p-4 md:p-8 lg:p-16">
           <Suspense fallback={
             <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
               <div className="w-16 h-16 rounded-full border-t-2 border-white animate-spin opacity-20" />
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Calibrating Neural Pathways...</p>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Initializing Workspace Assets...</p>
             </div>
           }>
             <ToolComponent 
@@ -133,29 +127,29 @@ export default function ToolContainer() {
         </div>
       </motion.div>
 
-      {/* Ad Placement: Studio Banner */}
+      {/* Sponsored Banner */}
       <div className="w-full h-32 glass-card flex items-center justify-center relative overflow-hidden bg-white/[0.01]">
          <div className="absolute top-2 right-4 text-[8px] font-black text-slate-700 uppercase tracking-widest">Sponsored</div>
          <div className="text-center space-y-1">
-            <p className="text-xs font-bold text-slate-500">Ad Placement Hub</p>
-            <p className="text-[10px] text-slate-600 uppercase tracking-tighter">Your high-margin revenue engine starts here.</p>
+            <p className="text-xs font-bold text-slate-500">Ad Placement Buffer</p>
+            <p className="text-[10px] text-slate-600 uppercase tracking-tighter">Supporting free local AI development.</p>
          </div>
       </div>
 
-      {/* Bottom Metadata */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600">
+      {/* Metadata */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600 pb-20">
          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
                <Zap className="w-4 h-4" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">Hardware Enabled</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">WASM SIMD Enabled</span>
             </div>
             <div className="flex items-center gap-2">
                <Info className="w-4 h-4" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">v4.5.0 Studio Expansion</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest">v4.6.0 Stable</span>
             </div>
          </div>
-         <p className="text-[11px] font-medium max-w-md text-center md:text-right">
-            Studio is supported by non-intrusive contextual placements. 100% of AI computation remains local.
+         <p className="text-[11px] font-medium max-w-md text-center md:text-right italic">
+            Privacy Assurance: This module operates strictly within the browser V8 sandbox. No data leaves the local memory buffer.
          </p>
       </div>
     </div>

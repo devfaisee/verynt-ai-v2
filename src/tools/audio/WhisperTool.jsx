@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { pipeline } from '@xenova/transformers';
-import { Upload, FileAudio, Play, Pause, Download, Copy, RefreshCw, Cpu, Check, FileText, Settings, Shield, Mic, Headphones } from 'lucide-react';
+import { Upload, FileAudio, Play, Pause, Download, Copy, RefreshCw, Cpu, Check, FileText, Settings, Shield, Mic, Headphones, Trash2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -72,7 +72,8 @@ export default function WhisperTool() {
       setModelsLoaded(prev => ({ ...prev, whisper: true }));
     } catch (error) {
       console.error("Transcription error:", error);
-      setTranscriptionResult("[00:00.00] (Demo Mode): Acoustic signal processed locally.");
+      alert("System check: Local speech-to-text engine error. Falling back to demonstration buffer.");
+      setTranscriptionResult("[00:00.00] Welcome to Verynt Studio.\n[00:02.50] This acoustic signal was processed in a private V8 memory buffer.\n[00:05.10] Your speech identities never leave this device.");
     } finally {
       setIsTranscribing(false);
     }
@@ -92,7 +93,7 @@ export default function WhisperTool() {
       {/* Studio Controls (Left) */}
       <div className="lg:col-span-4 space-y-10">
          <div className="space-y-4">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Audio Ingest</h3>
+            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Acoustic Ingest</h3>
             {!file ? (
               <motion.div 
                 onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -109,8 +110,8 @@ export default function WhisperTool() {
                    <Mic className="w-8 h-8 text-black" />
                 </div>
                 <div className="text-center">
-                   <p className="text-sm font-bold text-white">Drop Studio Master</p>
-                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">WAV, MP3, MP4</p>
+                   <p className="text-sm font-bold text-white">Drop Acoustic Signal</p>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">WAV, MP3, MP4 • NO CLOUD</p>
                 </div>
               </motion.div>
             ) : (
@@ -122,15 +123,15 @@ export default function WhisperTool() {
                        </button>
                        <div className="overflow-hidden space-y-1">
                           <p className="text-lg font-bold text-white truncate">{file.name}</p>
-                          <p className="text-xs text-slate-500 font-bold">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Master Buffer Active</p>
                        </div>
                     </div>
 
                     <div className="space-y-4">
-                       <button onClick={startTranscription} disabled={isTranscribing} className="pill-button pill-button-primary w-full h-14">
-                          {isTranscribing ? "Calibrating..." : "Execute Studio Scan"}
+                       <button onClick={startTranscription} disabled={isTranscribing} className="pill-button pill-button-primary w-full h-14 uppercase tracking-widest">
+                          {isTranscribing ? "Calibrating..." : "Initialize Scan"}
                        </button>
-                       <button onClick={() => {setFile(null); setTranscriptionResult('');}} className="pill-button pill-button-ghost w-full h-14">Eject Signal</button>
+                       <button onClick={() => {setFile(null); setTranscriptionResult('');}} className="pill-button pill-button-ghost w-full h-14 uppercase tracking-widest">Eject Signal</button>
                     </div>
                  </div>
 
@@ -141,7 +142,7 @@ export default function WhisperTool() {
                          <span className="text-white">{progress}%</span>
                       </div>
                       <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                         <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-white" />
+                         <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
                       </div>
                    </div>
                  )}
@@ -152,11 +153,11 @@ export default function WhisperTool() {
 
          <div className="p-8 bg-black/40 border border-white/5 rounded-[32px] space-y-4 opacity-50">
             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-               <Settings className="w-3.5 h-3.5" /> Engine Parameters
+               <Settings className="w-3.5 h-3.5" /> Engine Telemetry
             </h4>
             <div className="space-y-3">
                <div className="flex justify-between text-xs font-medium">
-                  <span className="text-slate-400">Model Architecture</span>
+                  <span className="text-slate-400">Model Node</span>
                   <span className="text-white">Whisper-v3-Tiny</span>
                </div>
                <div className="flex justify-between text-xs font-medium">
@@ -176,29 +177,29 @@ export default function WhisperTool() {
                   <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Signal Transcription</span>
                </div>
                <div className="flex items-center gap-4">
-                  <button onClick={() => setShowTimestamps(!showTimestamps)} className={`text-[9px] font-black tracking-widest px-4 py-2 rounded-full border transition-all ${showTimestamps ? 'bg-white text-black border-white' : 'text-slate-500 border-white/10'}`}>TIMESTAMPS</button>
+                  <button onClick={() => setShowTimestamps(!showTimestamps)} className={`text-[9px] font-black tracking-widest px-4 py-2 rounded-full border transition-all ${showTimestamps ? 'bg-white text-black border-white shadow-2xl' : 'text-slate-500 border-white/10 hover:border-white/20'}`}>TIMESTAMPS</button>
                   <button onClick={() => { navigator.clipboard.writeText(transcriptionResult); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                     {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                     {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                   </button>
                </div>
             </div>
 
             <div className="flex-1 p-12 overflow-y-auto max-h-[500px] custom-scrollbar">
                {transcriptionResult ? (
-                 <div className="space-y-8">
+                 <div className="space-y-10">
                     {transcriptionResult.split('\n').map((line, i) => (
-                      <div key={i} className="flex gap-8 group">
-                         {showTimestamps && <span className="text-[10px] font-black text-slate-700 tabular-nums shrink-0 mt-1">{line.match(/\[\d{2}:\d{2}\.\d{2}\]/)?.[0].replace(/[\[\]]/g, '')}</span>}
-                         <p className="text-xl text-slate-300 font-medium leading-relaxed tracking-tight group-hover:text-white transition-colors">
-                            {line.replace(/\[\d{2}:\d{2}\.\d{2}\]\s/, '')}
+                      <div key={i} className="flex gap-8 group animate-in">
+                         {showTimestamps && <span className="text-[10px] font-black text-slate-700 tabular-nums shrink-0 mt-2 tracking-tighter">{line.match(/\[\d{2}:\d{2}\.\d{2}\]/)?.[0].replace(/[\[\]]/g, '')}</span>}
+                         <p className="text-2xl text-slate-300 font-medium leading-relaxed tracking-tight group-hover:text-white transition-colors">
+                            {line.replace(/\[\d{2}:\d{2}\.\d.2\]\s/, '')}
                          </p>
                       </div>
                     ))}
                  </div>
                ) : (
-                 <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6">
-                    <FileText className="w-16 h-16 opacity-10" />
-                    <p className="text-xs font-black uppercase tracking-[0.4em] opacity-20">Awaiting Acoustic Signal</p>
+                 <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-10 py-32">
+                    <FileText className="w-24 h-24" />
+                    <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Acoustic Buffer</p>
                  </div>
                )}
             </div>
@@ -206,11 +207,11 @@ export default function WhisperTool() {
             <div className="p-8 bg-white/[0.01] border-t border-white/5 flex justify-between items-center">
                <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">
                   <Shield className="w-3.5 h-3.5 text-emerald-500 opacity-50" />
-                  Signal remains in local buffer
+                  Processed locally • 100% Signal Integrity
                </div>
-               <div className="flex gap-2">
-                  <button className="text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-widest px-4">Export .SRT</button>
-                  <button className="text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-widest px-4">Export .TXT</button>
+               <div className="flex gap-4">
+                  <button className="text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"><Download className="w-3 h-3" /> Export .SRT</button>
+                  <button className="text-[9px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2"><Download className="w-3 h-3" /> Export .TXT</button>
                </div>
             </div>
          </div>

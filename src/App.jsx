@@ -4,12 +4,14 @@ import { HelmetProvider } from 'react-helmet-async';
 import RootLayout from './layouts/RootLayout';
 import Dashboard from './pages/Dashboard';
 import ToolContainer from './pages/ToolContainer';
+import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { AppProvider } from './context/AppContext';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,

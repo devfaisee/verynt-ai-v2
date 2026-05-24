@@ -1,0 +1,30 @@
+{
+  "short_name": "Verynt",
+  "name": "Verynt AI: Private Offline Studio",
+  "description": "High-performance, private local AI and document utility SaaS operating entirely client-side.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "display": "standalone",
+  "orientation": "portrait"
+}
