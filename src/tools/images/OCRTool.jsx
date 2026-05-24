@@ -55,13 +55,13 @@ export default function OCRTool() {
       {/* Studio Controls (Left) */}
       <div className="lg:col-span-4 space-y-10">
          <div className="space-y-4">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Optic Ingest</h3>
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Optic Ingest</h3>
             {!image ? (
               <motion.div 
                 onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                 onDragLeave={() => setDragActive(false)}
                 onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) setupImage(e.dataTransfer.files[0]); }}
-                onClick={() => fileInputRef.current.click()}
+                onClick={() => document.getElementById('ocr-input').click()}
                 whileHover={{ scale: 1.02 }}
                 className={`w-full aspect-square rounded-[40px] border-2 border-dashed flex flex-col items-center justify-center gap-6 cursor-pointer transition-all ${
                   dragActive ? 'border-white bg-white/5' : 'border-white/5 hover:border-white/10'
@@ -82,7 +82,7 @@ export default function OCRTool() {
                     <img src={image} className="w-full h-48 object-contain rounded-2xl bg-black/20" alt="Source" />
                     <div className="space-y-4">
                        <div className="flex bg-white/5 rounded-2xl p-1 border border-white/5">
-                          <button onClick={() => setLanguage('eng')} className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${language === 'eng' ? 'bg-white text-black shadow-2xl' : 'text-slate-500'}`}>ENGLISH</button>
+                          <button onClick={() => setLanguage('eng')} className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${language === 'eng' ? 'bg-white text-black shadow-2xl border-white' : 'text-slate-500'}`}>ENGLISH</button>
                           <button onClick={() => setLanguage('spa')} className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${language === 'spa' ? 'bg-white text-black shadow-2xl' : 'text-slate-500'}`}>SPANISH</button>
                        </div>
                        <button onClick={() => {setImage(null); setOcrText('');}} className="pill-button pill-button-ghost w-full h-14">Flush Input</button>
@@ -135,7 +135,7 @@ export default function OCRTool() {
                  </div>
                ) : (
                  <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-20 py-48">
-                    <Search className="w-16 h-16 opacity-10" />
+                    <Search className="w-20 h-20" />
                     <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Visual Signal</p>
                  </div>
                )}

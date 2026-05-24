@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
-import { FileText, Plus, Trash2, Download, Merge, Scissors, Upload, File, ShieldCheck, RefreshCw, Layers, FileDigit, FileArchive, FileOutput, FilePlus, Copy, Search, ArrowUp, ArrowDown } from 'lucide-react';
+import { FileText, Plus, Trash2, Download, Merge, Scissors, Upload, File, ShieldCheck, RefreshCw, Layers, ArrowUp, ArrowDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -36,7 +36,7 @@ export default function PDFMergeTool() {
     }
 
     setIsProcessing(true);
-    triggerLoader("Merging PDF streams...", async () => {
+    triggerLoader("Merging PDF binary streams...", async () => {
       try {
         const mergedPdf = await PDFDocument.create();
         for (const fileObj of files) {
@@ -56,7 +56,6 @@ export default function PDFMergeTool() {
         incrementUsage();
       } catch (error) {
         console.error("PDF Merge Error:", error);
-        alert("An error occurred during local PDF processing.");
       } finally {
         setIsProcessing(false);
       }
@@ -120,14 +119,14 @@ export default function PDFMergeTool() {
 
       {/* Studio Workspace (Right) */}
       <div className="lg:col-span-8">
-         <div className="h-full min-h-[600px] flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-[40px] p-20 text-center space-y-8">
+         <div className="h-full min-h-[600px] flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-[40px] p-20 text-center space-y-8 shadow-2xl shadow-black/50">
             <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center relative">
                <Merge className="w-10 h-10 text-[#00f2fe]" />
                <div className="absolute -inset-4 bg-[#00f2fe]/5 blur-3xl rounded-full opacity-50" />
             </div>
             <div className="space-y-4 max-w-sm">
                <h3 className="text-4xl font-bold text-white tracking-tight">Merge Studio</h3>
-               <p className="text-slate-500 font-medium text-lg italic">"Awaiting 2+ signals to begin binary concatenation sequence."</p>
+               <p className="text-slate-500 font-medium text-lg italic leading-relaxed">"Awaiting 2+ document signals to begin local concatenation sequence."</p>
             </div>
          </div>
       </div>

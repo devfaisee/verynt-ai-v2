@@ -4,7 +4,9 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [isOffline, setIsOffline] = useState(false);
+  const [isPrivacySandbox, setIsPrivacySandbox] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [globalFile, setGlobalFile] = useState(null);
   const [usageCount, setUsageCount] = useState(() => {
     const saved = localStorage.getItem('verynt_usage_count');
     return saved ? parseInt(saved, 10) : 0;
@@ -59,8 +61,12 @@ export const AppProvider = ({ children }) => {
   const value = {
     isOffline,
     setIsOffline,
+    isPrivacySandbox,
+    setIsPrivacySandbox,
     isPricingOpen,
     setIsPricingOpen,
+    globalFile,
+    setGlobalFile,
     usageCount,
     incrementUsage,
     loaderVisible,

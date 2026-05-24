@@ -12,7 +12,7 @@ import {
   FileArchive, RefreshCw, MessageSquare, Sparkles, Layers, Wand2,
   Calculator, FileSearch, ShieldAlert, Video, Cpu, HardDrive, Smartphone, Users,
   Workflow, Database, CloudOff, Target, BarChart3, Binary, ListTodo,
-  Lightbulb, Mic2, FileSignature, Gavel, UserSearch, Box, Share2, Info, UserCircle
+  Lightbulb, Mic2, FileSignature, Gavel, UserSearch, Box, Share2, Info, UserCircle, Folder
 } from 'lucide-react';
 
 export const TOOLS_REGISTRY = [
@@ -40,6 +40,22 @@ export const TOOLS_REGISTRY = [
     category: 'pdf', 
     icon: FileArchive, 
     tags: ['utility'] 
+  },
+  { 
+    id: 'workspace', 
+    name: 'Verynt Workspace', 
+    description: 'IndexedDB-powered project organizer with local cross-file search.', 
+    category: 'pdf', 
+    icon: Folder, 
+    tags: ['indexdb', 'projects'] 
+  },
+  { 
+    id: 'doc-builder', 
+    name: 'Markdown Builder', 
+    description: 'Bespoke Markdown-to-PDF compiler with live HTML preview styles.', 
+    category: 'pdf', 
+    icon: FileSignature, 
+    tags: ['markdown', 'pdf-editor'] 
   },
 
   // --- 2. OCR & SCANNING ---

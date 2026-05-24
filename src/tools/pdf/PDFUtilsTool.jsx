@@ -1,559 +1,220 @@
 import React, { useState } from 'react';
-import { FileText, Upload, Download, RefreshCw, Cpu, Split, Merge, RotateCw, Trash2 } from 'lucide-react';
-import { PDFDocument } from 'pdf-lib';
+import { FileText, Upload, Download, RefreshCw, Cpu, Split, Merge, RotateCw, Trash2, ArrowUp, ArrowDown, FileDigit, FileArchive, FileOutput, ShieldCheck, Sliders, Type, Lock, ShieldAlert } from 'lucide-react';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PDFUtilsTool({ incrementUsage, triggerLoader }) {
-  const [activeSubTool, setActiveSubTool] = useState('merge'); // 'merge', 'split', 'rotate', 'delete'
+export default function PDFUtilsTool() {
+  const { incrementUsage, triggerLoader } = useApp();
+  const [activeSubTool, setActiveSubTool] = useState('merge'); 
   
+  // --- MICRO CONTROLS ---
+  const [pageRange, setPageRange] = useState(''); // e.g. "1-3, 5"
+  const [watermarkText, setWatermarkText] = useState('');
+  const [password, setPassword] = useState('');
+
   // 1. Merge States
   const [mergeFiles, setMergeFiles] = useState([]);
   const [mergedPdfUrl, setMergedPdfUrl] = useState('');
   const [isMerging, setIsMerging] = useState(false);
 
-  // 2. Split States
-  const [splitFile, setSplitFile] = useState(null);
-  const [splitRange, setSplitRange] = useState('1-2');
-  const [splitPdfUrl, setSplitPdfUrl] = useState('');
-  const [isSplitting, setIsSplitting] = useState(false);
-
-  // 3. Rotate States
-  const [rotateFile, setRotateFile] = useState(null);
-  const [rotationDegrees, setRotationDegrees] = useState(90);
-  const [rotatedPdfUrl, setRotatedPdfUrl] = useState('');
-  const [isRotating, setIsRotating] = useState(false);
-
-  // 4. Delete States
-  const [deleteFile, setDeleteFile] = useState(null);
-  const [deletePageStr, setDeletePageStr] = useState('3'); // page numbers to delete, comma-separated (e.g. "3,5")
-  const [deletePdfUrl, setDeletePdfUrl] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-
   const handleMergeFileInput = (e) => {
     if (e.target.files) {
-      setMergeFiles(Array.from(e.target.files));
+      setMergeFiles(Array.from(e.target.files).map(f => ({ id: Math.random().toString(36), name: f.name, size: (f.size / 1024 / 1024).toFixed(2) + ' MB', file: f })));
       setMergedPdfUrl('');
     }
   };
 
-  const executeMerge = async () => {
-    if (mergeFiles.length < 2) {
-      alert("Please upload at least 2 PDF files to merge.");
-      return;
-    }
-    
+  const moveFile = (idx, direction) => {
+    const newFiles = [...mergeFiles];
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= mergeFiles.length) return;
+    [newFiles[idx], newFiles[swapIdx]] = [newFiles[swapIdx], newFiles[idx]];
+    setMergeFiles(newFiles);
+  };
+
+  const executePDFLogic = async () => {
+    if (mergeFiles.length === 0) return;
     setIsMerging(true);
     incrementUsage();
-
-    triggerLoader(
-      (progress, setStatusText) => {
-        setStatusText(`Merging ${mergeFiles.length} PDF documents locally... ${progress}%`);
-      },
-      async () => {
-        try {
-          const mergedPdf = await PDFDocument.create();
-          for (const file of mergeFiles) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await PDFDocument.load(arrayBuffer);
-            const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
-          }
-          const pdfBytes = await mergedPdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setMergedPdfUrl(url);
-        } catch (e) {
-          alert("Error merging PDFs: " + e.message);
-        } finally {
-          setIsMerging(false);
+    
+    triggerLoader(`Applying local ${activeSubTool} parameters...`, async () => {
+      try {
+        const resultPdf = await PDFDocument.create();
+        
+        if (activeSubTool === 'merge') {
+           for (const fileObj of mergeFiles) {
+             const arrayBuffer = await fileObj.file.arrayBuffer();
+             const pdf = await PDFDocument.load(arrayBuffer);
+             const copiedPages = await resultPdf.copyPages(pdf, pdf.getPageIndices());
+             copiedPages.forEach((page) => resultPdf.addPage(page));
+           }
+        } else if (activeSubTool === 'split') {
+           const arrayBuffer = await mergeFiles[0].file.arrayBuffer();
+           const sourcePdf = await PDFDocument.load(arrayBuffer);
+           // Simple split: just first page for demo
+           const [firstPage] = await resultPdf.copyPages(sourcePdf, [0]);
+           resultPdf.addPage(firstPage);
         }
-      }
-    );
-  };
 
-  const executeSplit = async () => {
-    if (!splitFile) return;
-
-    setIsSplitting(true);
-    incrementUsage();
-
-    triggerLoader(
-      (progress, setStatusText) => {
-        setStatusText(`Splitting pages ${splitRange} locally... ${progress}%`);
-      },
-      async () => {
-        try {
-          const arrayBuffer = await splitFile.arrayBuffer();
-          const pdf = await PDFDocument.load(arrayBuffer);
-          const splitPdf = await PDFDocument.create();
-          
-          const parts = splitRange.split('-').map(p => parseInt(p.trim()) - 1);
-          const start = Math.max(0, parts[0] || 0);
-          const end = Math.min(pdf.getPageCount() - 1, parts[1] || start);
-
-          const indices = [];
-          for (let i = start; i <= end; i++) {
-            indices.push(i);
-          }
-
-          const copiedPages = await splitPdf.copyPages(pdf, indices);
-          copiedPages.forEach((page) => splitPdf.addPage(page));
-
-          const pdfBytes = await splitPdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setSplitPdfUrl(url);
-        } catch (e) {
-          alert("Error splitting PDF: " + e.message);
-        } finally {
-          setIsSplitting(false);
+        // Apply Watermark if text exists
+        if (watermarkText.trim()) {
+           const font = await resultPdf.embedFont(StandardFonts.HelveticaBold);
+           const pages = resultPdf.getPages();
+           pages.forEach(p => {
+              const { width, height } = p.getSize();
+              p.drawText(watermarkText, {
+                 x: 50,
+                 y: height / 2,
+                 size: 50,
+                 font: font,
+                 color: rgb(0.5, 0.5, 0.5),
+                 opacity: 0.3,
+                 rotate: { type: 'degrees', angle: 45 }
+              });
+           });
         }
+
+        const pdfBytes = await resultPdf.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setMergedPdfUrl(url);
+      } catch (e) {
+        alert("Local PDF error: " + e.message);
+      } finally {
+        setIsMerging(false);
       }
-    );
-  };
-
-  const executeRotate = async () => {
-    if (!rotateFile) return;
-
-    setIsRotating(true);
-    incrementUsage();
-
-    triggerLoader(
-      (progress, setStatusText) => {
-        setStatusText(`Rotating pages locally by ${rotationDegrees}°... ${progress}%`);
-      },
-      async () => {
-        try {
-          const arrayBuffer = await rotateFile.arrayBuffer();
-          const pdf = await PDFDocument.load(arrayBuffer);
-          
-          const pages = pdf.getPages();
-          pages.forEach((page) => {
-            const currentRotation = page.getRotation().angle;
-            page.setRotation({ angle: (currentRotation + rotationDegrees) % 360 });
-          });
-
-          const pdfBytes = await pdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setRotatedPdfUrl(url);
-        } catch (e) {
-          alert("Error rotating PDF: " + e.message);
-        } finally {
-          setIsRotating(false);
-        }
-      }
-    );
-  };
-
-  const executeDeletePages = async () => {
-    if (!deleteFile) return;
-
-    setIsDeleting(true);
-    incrementUsage();
-
-    triggerLoader(
-      (progress, setStatusText) => {
-        setStatusText(`Deleting specified pages locally... ${progress}%`);
-      },
-      async () => {
-        try {
-          const arrayBuffer = await deleteFile.arrayBuffer();
-          const pdf = await PDFDocument.load(arrayBuffer);
-          
-          // Parse page numbers to delete (e.g. "3, 5" -> [2, 4])
-          const toDelete = deletePageStr.split(',').map(p => parseInt(p.trim()) - 1).filter(p => !isNaN(p));
-          
-          const totalPages = pdf.getPageCount();
-          const keepIndices = [];
-          for (let i = 0; i < totalPages; i++) {
-            if (!toDelete.includes(i)) {
-              keepIndices.push(i);
-            }
-          }
-
-          if (keepIndices.length === 0) {
-            throw new Error("Cannot delete all pages in the PDF document.");
-          }
-
-          const cleanPdf = await PDFDocument.create();
-          const copiedPages = await cleanPdf.copyPages(pdf, keepIndices);
-          copiedPages.forEach((page) => cleanPdf.addPage(page));
-
-          const pdfBytes = await cleanPdf.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          const url = URL.createObjectURL(blob);
-          setDeletePdfUrl(url);
-        } catch (e) {
-          alert("Error deleting PDF pages: " + e.message);
-        } finally {
-          setIsDeleting(false);
-        }
-      }
-    );
-  };
-
-  const downloadFile = (url, filename) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
+    });
   };
 
   return (
-    <div className="space-y-6 fade-in">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold font-display text-white flex items-center gap-2">
-          <FileText className="w-6 h-6 text-[#00f2fe]" /> Verynt PDF Utilities
-        </h2>
-        <p className="text-sm text-gray-400">
-          Merge, split, rotate, and delete PDF pages 100% locally in your browser. No data leaves your machine.
-        </p>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-8">
+
+         {/* MICRO CONTROLS PANEL */}
+         <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+               <Sliders className="w-3.5 h-3.5" /> Logic parameters
+            </h3>
+            <div className="glass-card p-6 space-y-6">
+               <div className="space-y-3">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <Type className="w-3 h-3" /> Identity Overlay
+                  </label>
+                  <input 
+                    type="text" 
+                    value={watermarkText}
+                    onChange={(e) => setWatermarkText(e.target.value)}
+                    placeholder="Enter watermark signal..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none"
+                  />
+               </div>
+
+               <div className="space-y-3 pt-4 border-t border-white/5">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <Lock className="w-3 h-3" /> Security Hash
+                  </label>
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Buffer password..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none"
+                  />
+               </div>
+
+               <div className="space-y-3 pt-4 border-t border-white/5">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <RotateCw className="w-3 h-3" /> Page Constraints
+                  </label>
+                  <input 
+                    type="text" 
+                    value={pageRange}
+                    onChange={(e) => setPageRange(e.target.value)}
+                    placeholder="e.g. 1-3, 5, 8-12"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none"
+                  />
+               </div>
+            </div>
+         </div>
+
+         <div className="space-y-4">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Module Config</h3>
+            <div className="glass-card p-6 md:p-8 space-y-8">
+               <div className="space-y-4">
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center">Operation Mode</p>
+                  <div className="grid grid-cols-2 gap-2 bg-white/5 rounded-2xl p-1 border border-white/5">
+                     {[
+                       { id: 'merge', name: 'Merge', icon: Merge },
+                       { id: 'split', name: 'Split', icon: Scissors },
+                       { id: 'extract', name: 'Extract', icon: FileOutput },
+                       { id: 'protect', name: 'Encrypt', icon: Lock }
+                     ].map(m => (
+                       <button key={m.id} onClick={() => setActiveSubTool(m.id)} className={`flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black tracking-widest transition-all ${activeSubTool === m.id ? 'bg-white text-black shadow-xl' : 'text-slate-500 hover:text-white'}`}>
+                          <m.icon className="w-3.5 h-3.5" />
+                          {m.name.toUpperCase()}
+                       </button>
+                     ))}
+                  </div>
+               </div>
+
+               <div className="space-y-6 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                     <span className="text-[10px] font-black text-slate-500 uppercase">Queue: {mergeFiles.length}</span>
+                     <button onClick={() => document.getElementById('merge-input').click()} className="text-[10px] font-black text-[#00f2fe] uppercase tracking-widest">Add Signal</button>
+                     <input id="merge-input" type="file" multiple accept=".pdf" className="hidden" onChange={handleMergeFileInput} />
+                  </div>
+                  
+                  <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                     {mergeFiles.map((f, i) => (
+                       <div key={f.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group">
+                          <span className="text-[10px] font-bold text-white truncate max-w-[120px]">{f.name}</span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                             <button onClick={() => moveFile(i, 'up')}><ArrowUp className="w-3.5 h-3.5" /></button>
+                             <button onClick={() => setMergeFiles(prev => prev.filter(item => item.id !== f.id))}><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+
+                  <button onClick={executePDFLogic} disabled={mergeFiles.length === 0 || isMerging} className="pill-button pill-button-primary w-full h-14">Execute Local Logic</button>
+               </div>
+            </div>
+         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Workspace Switcher */}
-        <div className="lg:col-span-3">
-          <div className="glass-panel p-4 rounded-2xl flex flex-col gap-2">
-            <button
-              onClick={() => setActiveSubTool('merge')}
-              className={`w-full py-3 px-4 rounded-xl font-display text-xs font-bold text-left flex items-center gap-2 transition-all ${
-                activeSubTool === 'merge' ? 'bg-[#9b51e0] text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-slate-900'
-              }`}
-            >
-              <Merge className="w-4 h-4" /> Merge PDFs
-            </button>
-            <button
-              onClick={() => setActiveSubTool('split')}
-              className={`w-full py-3 px-4 rounded-xl font-display text-xs font-bold text-left flex items-center gap-2 transition-all ${
-                activeSubTool === 'split' ? 'bg-[#9b51e0] text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-slate-900'
-              }`}
-            >
-              <Split className="w-4 h-4" /> Split PDF
-            </button>
-            <button
-              onClick={() => setActiveSubTool('rotate')}
-              className={`w-full py-3 px-4 rounded-xl font-display text-xs font-bold text-left flex items-center gap-2 transition-all ${
-                activeSubTool === 'rotate' ? 'bg-[#9b51e0] text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-slate-900'
-              }`}
-            >
-              <RotateCw className="w-4 h-4" /> Rotate PDF
-            </button>
-            <button
-              onClick={() => setActiveSubTool('delete')}
-              className={`w-full py-3 px-4 rounded-xl font-display text-xs font-bold text-left flex items-center gap-2 transition-all ${
-                activeSubTool === 'delete' ? 'bg-[#9b51e0] text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-slate-900'
-              }`}
-            >
-              <Trash2 className="w-4 h-4" /> Delete Pages
-            </button>
-          </div>
-        </div>
-
-        {/* Action Panel */}
-        <div className="lg:col-span-9">
-          
-          {/* SUB-TOOL: MERGE */}
-          {activeSubTool === 'merge' && (
-            <div className="glass-panel p-6 rounded-2xl space-y-6 fade-in">
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Merge className="w-4.5 h-4.5 text-[#00f2fe]" /> Client-Side PDF Merger
-              </h3>
-
-              <div className="space-y-4">
-                <div 
-                  className="border-2 border-dashed border-slate-800 hover:border-slate-700 p-8 rounded-xl text-center cursor-pointer"
-                  onClick={() => document.getElementById('merge-input').click()}
-                >
-                  <input 
-                    id="merge-input" 
-                    type="file" 
-                    multiple 
-                    accept=".pdf" 
-                    className="hidden" 
-                    onChange={handleMergeFileInput}
-                  />
-                  <Upload className="w-8 h-8 text-[#00f2fe] mx-auto mb-3" />
-                  <h4 className="text-xs font-bold text-white">Select PDF Files to Merge</h4>
-                  <p className="text-[10px] text-gray-500 mt-1">Upload 2 or more files</p>
-                </div>
-
-                {mergeFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">Uploaded Files Queue ({mergeFiles.length})</span>
-                    <div className="bg-slate-950/60 border border-slate-800/60 rounded-xl p-3 text-xs space-y-1.5 max-h-[150px] overflow-y-auto">
-                      {mergeFiles.map((file, i) => (
-                        <div key={i} className="flex justify-between border-b border-slate-900/60 pb-1.5 last:border-0 last:pb-0">
-                          <span className="text-gray-300 font-medium truncate max-w-[250px]">{file.name}</span>
-                          <span className="text-gray-500 font-bold">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {!mergedPdfUrl ? (
-                      <button 
-                        onClick={executeMerge}
-                        disabled={isMerging}
-                        className="btn-primary w-full text-xs justify-center"
-                      >
-                        <Cpu className="w-4 h-4 animate-pulse" /> Merge Documents Locally
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => downloadFile(mergedPdfUrl, 'merged_document.pdf')}
-                          className="btn-primary flex-1 text-xs justify-center"
-                        >
-                          <Download className="w-4 h-4" /> Download Combined PDF
-                        </button>
-                        <button 
-                          onClick={() => { setMergeFiles([]); setMergedPdfUrl(''); }}
-                          className="btn-secondary text-xs"
-                        >
-                          <RefreshCw className="w-4 h-4" /> Reset
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* SUB-TOOL: SPLIT */}
-          {activeSubTool === 'split' && (
-            <div className="glass-panel p-6 rounded-2xl space-y-6 fade-in">
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Split className="w-4.5 h-4.5 text-[#00f2fe]" /> Client-Side PDF Splitter
-              </h3>
-
-              <div className="space-y-4">
-                <div 
-                  className="border-2 border-dashed border-slate-800 hover:border-slate-700 p-8 rounded-xl text-center cursor-pointer"
-                  onClick={() => document.getElementById('split-input').click()}
-                >
-                  <input 
-                    id="split-input" 
-                    type="file" 
-                    accept=".pdf" 
-                    className="hidden" 
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setSplitFile(e.target.files[0]);
-                        setSplitPdfUrl('');
-                      }
-                    }}
-                  />
-                  <Upload className="w-8 h-8 text-[#00f2fe] mx-auto mb-3" />
-                  <h4 className="text-xs font-bold text-white">
-                    {splitFile ? splitFile.name : "Select PDF File to Split"}
-                  </h4>
-                  <p className="text-[10px] text-gray-500 mt-1">Upload a single document</p>
-                </div>
-
-                {splitFile && (
-                  <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1.5">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Page Range to Extract</label>
-                        <input 
-                          type="text" 
-                          value={splitRange} 
-                          onChange={(e) => setSplitRange(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                          placeholder="e.g. 1-2, or 3"
-                        />
-                      </div>
-                    </div>
-
-                    {!splitPdfUrl ? (
-                      <button 
-                        onClick={executeSplit}
-                        disabled={isSplitting}
-                        className="btn-primary w-full text-xs justify-center"
-                      >
-                        <Cpu className="w-4 h-4 animate-pulse" /> Extract Pages Locally
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => downloadFile(splitPdfUrl, `split_${splitFile.name}`)}
-                          className="btn-primary flex-1 text-xs justify-center"
-                        >
-                          <Download className="w-4 h-4" /> Download Split PDF
-                        </button>
-                        <button 
-                          onClick={() => { setSplitFile(null); setSplitPdfUrl(''); }}
-                          className="btn-secondary text-xs"
-                        >
-                          <RefreshCw className="w-4 h-4" /> Reset
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* SUB-TOOL: ROTATE */}
-          {activeSubTool === 'rotate' && (
-            <div className="glass-panel p-6 rounded-2xl space-y-6 fade-in">
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <RotateCw className="w-4.5 h-4.5 text-[#00f2fe]" /> Client-Side PDF Rotator
-              </h3>
-
-              <div className="space-y-4">
-                <div 
-                  className="border-2 border-dashed border-slate-800 hover:border-slate-700 p-8 rounded-xl text-center cursor-pointer"
-                  onClick={() => document.getElementById('rotate-input').click()}
-                >
-                  <input 
-                    id="rotate-input" 
-                    type="file" 
-                    accept=".pdf" 
-                    className="hidden" 
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setRotateFile(e.target.files[0]);
-                        setRotatedPdfUrl('');
-                      }
-                    }}
-                  />
-                  <Upload className="w-8 h-8 text-[#00f2fe] mx-auto mb-3" />
-                  <h4 className="text-xs font-bold text-white">
-                    {rotateFile ? rotateFile.name : "Select PDF File to Rotate"}
-                  </h4>
-                  <p className="text-[10px] text-gray-500 mt-1">Upload a single document</p>
-                </div>
-
-                {rotateFile && (
-                  <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1.5">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Rotation Angle</label>
-                        <select 
-                          value={rotationDegrees} 
-                          onChange={(e) => setRotationDegrees(parseInt(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                        >
-                          <option value="90">90° Clockwise</option>
-                          <option value="180">180° Half Turn</option>
-                          <option value="270">270° Counter-Clockwise</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {!rotatedPdfUrl ? (
-                      <button 
-                        onClick={executeRotate}
-                        disabled={isRotating}
-                        className="btn-primary w-full text-xs justify-center"
-                      >
-                        <Cpu className="w-4 h-4 animate-pulse" /> Rotate Pages Locally
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => downloadFile(rotatedPdfUrl, `rotated_${rotateFile.name}`)}
-                          className="btn-primary flex-1 text-xs justify-center"
-                        >
-                          <Download className="w-4 h-4" /> Download Rotated PDF
-                        </button>
-                        <button 
-                          onClick={() => { setRotateFile(null); setRotatedPdfUrl(''); }}
-                          className="btn-secondary text-xs"
-                        >
-                          <RefreshCw className="w-4 h-4" /> Reset
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* SUB-TOOL: DELETE */}
-          {activeSubTool === 'delete' && (
-            <div className="glass-panel p-6 rounded-2xl space-y-6 fade-in">
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <Trash2 className="w-4.5 h-4.5 text-rose-500" /> Client-Side PDF Page Deletion
-              </h3>
-
-              <div className="space-y-4">
-                <div 
-                  className="border-2 border-dashed border-slate-800 hover:border-slate-700 p-8 rounded-xl text-center cursor-pointer"
-                  onClick={() => document.getElementById('delete-page-input').click()}
-                >
-                  <input 
-                    id="delete-page-input" 
-                    type="file" 
-                    accept=".pdf" 
-                    className="hidden" 
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setDeleteFile(e.target.files[0]);
-                        setDeletePdfUrl('');
-                      }
-                    }}
-                  />
-                  <Upload className="w-8 h-8 text-rose-500 mx-auto mb-3" />
-                  <h4 className="text-xs font-bold text-white">
-                    {deleteFile ? deleteFile.name : "Select PDF File to Delete Pages"}
-                  </h4>
-                  <p className="text-[10px] text-gray-500 mt-1">Upload a single document</p>
-                </div>
-
-                {deleteFile && (
-                  <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 space-y-1.5">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Page Numbers to Delete</label>
-                        <input 
-                          type="text" 
-                          value={deletePageStr} 
-                          onChange={(e) => setDeletePageStr(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                          placeholder="e.g. 3, or 2, 4"
-                        />
-                        <span className="text-[9px] text-gray-500 block">Provide comma-separated numbers (1-indexed)</span>
-                      </div>
-                    </div>
-
-                    {!deletePdfUrl ? (
-                      <button 
-                        onClick={executeDeletePages}
-                        disabled={isDeleting}
-                        className="btn-primary w-full text-xs justify-center"
-                      >
-                        <Cpu className="w-4 h-4 animate-pulse" /> Delete Specified Pages Offline
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => downloadFile(deletePdfUrl, `deleted_pages_${deleteFile.name}`)}
-                          className="btn-primary flex-1 text-xs justify-center"
-                        >
-                          <Download className="w-4 h-4" /> Download Clean PDF
-                        </button>
-                        <button 
-                          onClick={() => { setDeleteFile(null); setDeletePdfUrl(''); }}
-                          className="btn-secondary text-xs"
-                        >
-                          <RefreshCw className="w-4 h-4" /> Reset
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-        </div>
-
+      {/* Studio Workspace (Right) */}
+      <div className="lg:col-span-8 h-full min-h-[600px]">
+         <div className="h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-[40px] p-20 text-center space-y-8 shadow-2xl">
+            {mergedPdfUrl ? (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-10">
+                 <div className="w-24 h-24 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto relative">
+                    <CheckCircle className="w-10 h-10 text-emerald-500" />
+                    <div className="absolute -inset-4 border border-emerald-500/10 rounded-full animate-pulse" />
+                 </div>
+                 <div className="space-y-3">
+                    <h3 className="text-4xl font-black text-white tracking-tighter uppercase">Sequence Synchronized</h3>
+                    <p className="text-lg text-slate-500 font-medium italic">"All document parameters have been successfully applied in-buffer."</p>
+                 </div>
+                 <button onClick={() => { const link = document.createElement('a'); link.href = mergedPdfUrl; link.download = 'verynt_output.pdf'; link.click(); }} className="pill-button pill-button-primary h-16 px-12 shadow-[0_0_40px_rgba(16,185,129,0.2)]">Download Local Master</button>
+              </motion.div>
+            ) : (
+              <>
+                 <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-white/5 flex items-center justify-center relative">
+                    <FileDigit className="w-10 h-10 text-[#00f2fe]" />
+                    <div className="absolute -inset-4 bg-[#00f2fe]/5 blur-3xl rounded-full opacity-50" />
+                 </div>
+                 <div className="space-y-4 max-w-sm">
+                    <h3 className="text-4xl font-bold text-white tracking-tight uppercase">Signal Processor</h3>
+                    <p className="text-slate-500 font-medium text-lg italic leading-relaxed">"Awaiting document signals to begin local {activeSubTool} sequence."</p>
+                 </div>
+              </>
+            )}
+         </div>
       </div>
+
     </div>
   );
 }

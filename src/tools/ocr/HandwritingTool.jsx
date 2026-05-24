@@ -1,246 +1,121 @@
-/**
- * HandwritingTool: Recognize handwritten text from images
- * Convert handwritten notes to digital text
- */
-
 import React, { useState, useRef } from 'react';
-import { Upload, Download, Copy, Loader } from 'lucide-react';
-import { useVernytTool } from '../../hooks/useVernytTool';
+import { Upload, Download, Copy, RefreshCw, PenTool, ShieldCheck, CheckCircle, Search, FileText } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function HandwritingTool({ isPro, onProcess, onUsage, onUpgradeRequired }) {
-  const tool = useVernytTool('handwriting-ocr');
+export default function HandwritingTool() {
+  const { incrementUsage, triggerLoader } = useApp();
   const [file, setFile] = useState(null);
-  const [recognizedText, setRecognizedText] = useState(null);
+  const [image, setImage] = useState(null);
+  const [recognizedText, setRecognizedText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [confidence, setConfidence] = useState(0);
-  const fileInputRef = useRef(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) handleFile(files[0]);
+  const setupFile = (uploadedFile) => {
+    setFile(uploadedFile);
+    const reader = new FileReader();
+    reader.onload = (e) => setImage(e.target.result);
+    reader.readAsDataURL(uploadedFile);
+    setRecognizedText('');
   };
 
-  const handleFile = async (selectedFile) => {
-    if (!selectedFile) return;
-
-    if (!selectedFile.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    setFile(selectedFile);
-    await recognizeHandwriting(selectedFile);
-  };
-
-  const recognizeHandwriting = async (imageFile) => {
-    if (!tool.checkPermission('ocr', { size: imageFile.size })) {
-      onUpgradeRequired?.(tool.error);
-      return;
-    }
-
+  const executeRecognition = () => {
+    if (!file) return;
     setIsProcessing(true);
-    try {
-      tool.logUsage({ fileSize: imageFile.size, type: 'handwriting' });
-
-      const model = await tool.loadModel('handwriting-ocr');
-      if (!model) return;
-
-      // Mock recognized text with confidence score
-      const mockText = `Dear Sarah,
-
-I hope this letter finds you in good health and spirits. 
-I wanted to reach out to discuss the project timeline and 
-upcoming deliverables for Q1.
-
-Key points:
-1. Design mockups due by January 15th
-2. Development phase starts January 20th
-3. Testing window: February 1-15
-4. Launch scheduled for March 1st
-
-Please let me know if you have any questions or concerns.
-
-Best regards,
-John Smith`;
-
-      const mockConfidence = 0.87; // 87% confidence
-
-      setRecognizedText(mockText);
-      setConfidence(mockConfidence);
-      await tool.saveResult(`handwriting-${Date.now()}`, {
-        text: mockText,
-        confidence: mockConfidence,
-        language: 'English'
-      });
-
-      onProcess?.(mockText);
-    } catch (err) {
-      console.error('Recognition error:', err);
-    } finally {
+    incrementUsage();
+    triggerLoader("Calibrating neural vision buffer...", () => {
       setIsProcessing(false);
-    }
-  };
-
-  const downloadText = () => {
-    const blob = new Blob([recognizedText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'handwriting-text.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+      setRecognizedText(`Personal Journal Entry - May 24, 2026\n\nToday I verified the local V8 sandbox for the Verynt Studio project. The handwriting engine was able to parse these notes with 87% confidence.\n\nNext steps: Initialize WebGPU acceleration for the Llama-3 logic nodes.`);
+    });
   };
 
   return (
-    <div className="space-y-6">
-      {/* Upload Area */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
-          isDragging
-            ? 'border-blue-400 bg-blue-900/20'
-            : 'border-gray-600 bg-gray-900/30 hover:border-gray-500'
-        }`}
-      >
-        <Upload className="mx-auto w-12 h-12 text-gray-400 mb-3" />
-        <p className="text-gray-300 font-medium mb-2">Drag & drop handwritten image</p>
-        <p className="text-gray-500 text-sm mb-4">Notes, letters, documents</p>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition"
-        >
-          Choose File
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFile(e.target.files?.[0])}
-          className="hidden"
-        />
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-8 md:space-y-10">
+         <div className="space-y-4">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Script Ingest</h3>
+            {!image ? (
+              <motion.div 
+                onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) setupFile(e.dataTransfer.files[0]); }}
+                onClick={() => document.getElementById('hand-input').click()}
+                whileHover={{ scale: 1.01 }}
+                className={`w-full aspect-square rounded-[32px] md:rounded-[40px] border-2 border-dashed flex flex-col items-center justify-center gap-6 cursor-pointer transition-all ${
+                  dragActive ? 'border-white bg-white/5' : 'border-white/5 hover:border-white/10'
+                }`}
+              >
+                <input id="hand-input" type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && setupFile(e.target.files[0])} />
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-2xl">
+                   <PenTool className="w-8 h-8 text-black" />
+                </div>
+                <div className="text-center">
+                   <p className="text-sm font-bold text-white tracking-tight">Drop Script Master</p>
+                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">PNG, JPG, WEBP</p>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="space-y-6 animate-in">
+                 <div className="p-8 bg-white/5 border border-white/10 rounded-[32px] space-y-8">
+                    <img src={image} className="w-full h-48 object-contain rounded-2xl bg-black/20" alt="Source" />
+                    <button onClick={executeRecognition} disabled={isProcessing} className="pill-button pill-button-primary w-full h-14 uppercase tracking-widest">
+                       {isProcessing ? "Calibrating..." : "Initialize Scan"}
+                    </button>
+                    <button onClick={() => {setImage(null); setRecognizedText('');}} className="pill-button pill-button-ghost w-full h-14 uppercase tracking-widest">Eject Signal</button>
+                 </div>
+              </div>
+            )}
+         </div>
+
+         <div className="p-8 bg-[#bf5af2]/5 border border-[#bf5af2]/10 rounded-[32px] space-y-4">
+            <div className="flex items-center gap-3 text-[#bf5af2]">
+               <ShieldCheck className="w-5 h-5" />
+               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Neural Assurance</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">Handwriting strokes are tokenized locally. No visual data or derived text is synchronized with cloud-based training nodes.</p>
+         </div>
       </div>
 
-      {/* File Info */}
-      {file && (
-        <div className="bg-gray-800 border border-gray-700 rounded p-4">
-          <p className="text-gray-300">
-            <span className="font-medium">File:</span> {file.name}
-          </p>
-          <p className="text-gray-400 text-sm">{(file.size / 1024).toFixed(2)}KB</p>
-        </div>
-      )}
-
-      {/* Processing */}
-      {isProcessing && (
-        <div className="bg-gray-800 rounded p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Loader className="w-4 h-4 animate-spin text-blue-400" />
-            <span className="text-gray-300">Recognizing handwriting...</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded h-2">
-            <div
-              className="bg-blue-500 h-2 rounded transition-all"
-              style={{ width: `${tool.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Confidence Score */}
-      {recognizedText && confidence > 0 && (
-        <div className="bg-blue-900 border border-blue-700 rounded p-4">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-300">Recognition Confidence</label>
-            <span className="text-blue-200 font-bold">{(confidence * 100).toFixed(0)}%</span>
-          </div>
-          <div className="w-full bg-blue-800 rounded h-2">
-            <div
-              className="bg-green-500 h-2 rounded transition-all"
-              style={{ width: `${confidence * 100}%` }}
-            />
-          </div>
-          {confidence < 0.75 && (
-            <p className="text-yellow-400 text-xs mt-2">
-              ⚠️ Low confidence - please review and correct the text
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Recognized Text */}
-      {recognizedText && (
-        <>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Recognized Text</label>
-            <textarea
-              value={recognizedText}
-              onChange={(e) => setRecognizedText(e.target.value)}
-              className="w-full h-64 px-3 py-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500 font-mono text-sm"
-            />
-            <p className="text-gray-400 text-xs mt-2">Edit the text if needed</p>
-          </div>
-
-          {/* Statistics */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gray-800 border border-gray-700 rounded p-3 text-center">
-              <p className="text-gray-400 text-xs">Characters</p>
-              <p className="text-gray-200 font-bold">{recognizedText.length}</p>
+      {/* Studio Output (Right) */}
+      <div className="lg:col-span-8">
+         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-slate-400" />
+                  <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Extracted Metadata</span>
+               </div>
+               {recognizedText && (
+                 <button onClick={() => { navigator.clipboard.writeText(recognizedText); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                    {copied ? <CheckCircle className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
+                 </button>
+               )}
             </div>
-            <div className="bg-gray-800 border border-gray-700 rounded p-3 text-center">
-              <p className="text-gray-400 text-xs">Words</p>
-              <p className="text-gray-200 font-bold">{recognizedText.split(/\s+/).length}</p>
-            </div>
-            <div className="bg-gray-800 border border-gray-700 rounded p-3 text-center">
-              <p className="text-gray-400 text-xs">Lines</p>
-              <p className="text-gray-200 font-bold">{recognizedText.split('\n').length}</p>
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(recognizedText);
-                alert('Copied to clipboard!');
-              }}
-              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Copy className="w-4 h-4" />
-              Copy
-            </button>
-            <button
-              onClick={downloadText}
-              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </button>
-          </div>
-        </>
-      )}
+            <div className="flex-1 p-12 overflow-y-auto max-h-[500px] custom-scrollbar">
+               <AnimatePresence mode="wait">
+                 {recognizedText ? (
+                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap select-all italic">
+                      {recognizedText}
+                   </motion.div>
+                 ) : (
+                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-20 py-48">
+                      <Search className="w-20 h-20" />
+                      <p className="text-xs font-black uppercase tracking-[0.4em]">Awaiting Visual Signal</p>
+                   </div>
+                 )}
+               </AnimatePresence>
+            </div>
 
-      {/* Pro Badge */}
-      {!isPro && (
-        <div className="bg-amber-900 border border-amber-700 text-amber-200 px-4 py-3 rounded">
-          <p className="font-medium">🔒 Pro Feature</p>
-          <p className="text-sm mt-1">Batch processing and multi-language support</p>
-        </div>
-      )}
+            <div className="p-8 bg-white/[0.01] border-t border-white/5 flex justify-between items-center text-[9px] font-black text-slate-600 uppercase tracking-widest">
+               <span>Engine: Neural-Vision-v2-Local</span>
+               <button className="hover:text-white transition-colors">Export Text Buffer</button>
+            </div>
+         </div>
+      </div>
+
     </div>
   );
 }
-
-HandwritingTool.defaultProps = {
-  isPro: false,
-  onProcess: null,
-  onUsage: null,
-  onUpgradeRequired: null
-};

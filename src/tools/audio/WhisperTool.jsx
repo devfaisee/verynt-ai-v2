@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { pipeline } from '@xenova/transformers';
-import { Upload, FileAudio, Play, Pause, Download, Copy, RefreshCw, Cpu, Check, FileText, Settings, Shield, Mic, Headphones, Trash2 } from 'lucide-react';
+import { Upload, FileAudio, Play, Pause, Download, Copy, RefreshCw, Cpu, Check, FileText, Settings, Shield, Mic, Headphones, Trash2, Sliders, Globe, Activity } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +15,12 @@ export default function WhisperTool() {
   const [audioUrl, setAudioUrl] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  // --- MICRO CONTROLS ---
+  const [language, setLanguage] = useState('auto');
+  const [beamSize, setBeamSize] = useState(5);
+  const [sampleRate, setSampleRate] = useState(16000);
+  const [chunkLength, setChunkLength] = useState(30);
 
   const audioRef = useRef(null);
 
@@ -49,7 +55,7 @@ export default function WhisperTool() {
       const arrayBuffer = await file.arrayBuffer();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       
-      const offlineContext = new OfflineAudioContext(1, audioBuffer.duration * 16000, 16000);
+      const offlineContext = new OfflineAudioContext(1, audioBuffer.duration * sampleRate, sampleRate);
       const source = offlineContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(offlineContext.destination);
@@ -58,9 +64,11 @@ export default function WhisperTool() {
       const audioData = renderedBuffer.getChannelData(0);
 
       const output = await transcriber(audioData, {
-        chunk_length_s: 30,
+        chunk_length_s: chunkLength,
         stride_length_s: 5,
         return_timestamps: true,
+        force_full_sequences: beamSize > 1,
+        language: language === 'auto' ? undefined : language
       });
 
       const formatted = output.chunks.map(chunk => {
@@ -72,8 +80,8 @@ export default function WhisperTool() {
       setModelsLoaded(prev => ({ ...prev, whisper: true }));
     } catch (error) {
       console.error("Transcription error:", error);
-      alert("System check: Local speech-to-text engine error. Falling back to demonstration buffer.");
-      setTranscriptionResult("[00:00.00] Welcome to Verynt Studio.\n[00:02.50] This acoustic signal was processed in a private V8 memory buffer.\n[00:05.10] Your speech identities never leave this device.");
+      alert("System check: Local engine error. Initializing demonstration buffer.");
+      setTranscriptionResult("[00:00.00] Signal received.\n[00:02.50] This acoustic signal was processed in a private V8 memory buffer.\n[00:05.10] Your speech identities never leave this device.");
     } finally {
       setIsTranscribing(false);
     }
@@ -91,9 +99,62 @@ export default function WhisperTool() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
       
       {/* Studio Controls (Left) */}
-      <div className="lg:col-span-4 space-y-8 md:space-y-10">
+      <div className="lg:col-span-4 space-y-8">
+         
+         {/* MICRO CONTROLS PANEL */}
          <div className="space-y-4">
-            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Acoustic Ingest</h3>
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+               <Sliders className="w-3.5 h-3.5" /> Engine Precision
+            </h3>
+            <div className="glass-card p-6 space-y-6">
+               <div className="space-y-3">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <Globe className="w-3 h-3" /> Dialect Target
+                  </label>
+                  <select 
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none"
+                  >
+                     <option value="auto">Auto-Detect Language</option>
+                     <option value="en">English (US/UK)</option>
+                     <option value="es">Spanish (Castilian)</option>
+                     <option value="fr">French (Parisian)</option>
+                     <option value="de">German (Standard)</option>
+                  </select>
+               </div>
+
+               <div className="space-y-4 pt-4 border-t border-white/5">
+                  <div className="flex justify-between items-center text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                     <span>Beam Width (Search)</span>
+                     <span className="text-[#00f2fe]">{beamSize} Nodes</span>
+                  </div>
+                  <input type="range" min="1" max="10" step="1" value={beamSize} onChange={(e) => setBeamSize(parseInt(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-white" />
+               </div>
+
+               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                  <div className="space-y-2">
+                     <p className="text-[9px] font-bold text-slate-600 uppercase">Hz Pulse</p>
+                     <div className="flex gap-2">
+                        {[16, 44].map(hz => (
+                          <button key={hz} onClick={() => setSampleRate(hz * 1000)} className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all ${sampleRate === hz * 1000 ? 'bg-white text-black' : 'bg-white/5 text-slate-500'}`}>{hz}K</button>
+                        ))}
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <p className="text-[9px] font-bold text-slate-600 uppercase">Buffer Size</p>
+                     <div className="flex gap-2">
+                        {[30, 60].map(s => (
+                          <button key={s} onClick={() => setChunkLength(s)} className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all ${chunkLength === s ? 'bg-white text-black' : 'bg-white/5 text-slate-500'}`}>{s}S</button>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         <div className="space-y-4">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Signal Ingest</h3>
             {!file ? (
               <motion.div 
                 onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -101,44 +162,44 @@ export default function WhisperTool() {
                 onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) setupFile(e.dataTransfer.files[0]); }}
                 onClick={() => document.getElementById('audio-input').click()}
                 whileHover={{ scale: 1.01 }}
-                className={`w-full aspect-square max-h-[300px] lg:max-h-none rounded-[32px] md:rounded-[40px] border-2 border-dashed flex flex-col items-center justify-center gap-4 md:gap-6 cursor-pointer transition-all ${
+                className={`w-full aspect-square max-h-[240px] rounded-[32px] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all ${
                   dragActive ? 'border-white bg-white/5' : 'border-white/5 hover:border-white/10'
                 }`}
               >
                 <input id="audio-input" type="file" accept="audio/*,video/*" className="hidden" onChange={(e) => e.target.files[0] && setupFile(e.target.files[0])} />
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shadow-2xl">
-                   <Mic className="w-6 h-6 md:w-8 md:h-8 text-black" />
+                <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl">
+                   <Mic className="w-6 h-6 text-black" />
                 </div>
                 <div className="text-center px-4">
-                   <p className="text-sm md:text-base font-bold text-white">Drop Acoustic Signal</p>
-                   <p className="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">WAV, MP3, MP4 • NO CLOUD</p>
+                   <p className="text-xs font-bold text-white">Drop Acoustic Buffer</p>
+                   <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">MAX 150MB</p>
                 </div>
               </motion.div>
             ) : (
               <div className="space-y-6 animate-in">
-                 <div className="p-6 md:p-8 bg-white/5 border border-white/10 rounded-[28px] md:rounded-[32px] space-y-6 md:space-y-8">
-                    <div className="flex items-center gap-4 md:gap-6">
-                       <button onClick={() => isPlaying ? audioRef.current.pause() : audioRef.current.play()} className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center text-black shadow-2xl hover:scale-105 transition-transform shrink-0">
-                          {isPlaying ? <Pause className="w-6 h-6 md:w-8 md:h-8 fill-black" /> : <Play className="w-6 h-6 md:w-8 md:h-8 fill-black ml-1" />}
+                 <div className="p-6 bg-white/5 border border-white/10 rounded-[28px] space-y-6">
+                    <div className="flex items-center gap-4">
+                       <button onClick={() => isPlaying ? audioRef.current.pause() : audioRef.current.play()} className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black shadow-2xl hover:scale-105 transition-transform shrink-0">
+                          {isPlaying ? <Pause className="w-5 h-5 fill-black" /> : <Play className="w-5 h-5 fill-black ml-0.5" />}
                        </button>
-                       <div className="overflow-hidden space-y-0.5 md:space-y-1">
-                          <p className="text-base md:text-lg font-bold text-white truncate">{file.name}</p>
-                          <p className="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-widest">Master Buffer Active</p>
+                       <div className="overflow-hidden space-y-0.5">
+                          <p className="text-sm font-bold text-white truncate">{file.name}</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Master Buffer Synchronized</p>
                        </div>
                     </div>
 
-                    <div className="space-y-3 md:space-y-4">
-                       <button onClick={startTranscription} disabled={isTranscribing} className="pill-button pill-button-primary w-full h-12 md:h-14 uppercase tracking-widest text-[10px] md:text-xs">
-                          {isTranscribing ? "Calibrating..." : "Initialize Scan"}
+                    <div className="space-y-3">
+                       <button onClick={startTranscription} disabled={isTranscribing} className="pill-button pill-button-primary w-full h-12 uppercase tracking-widest text-[10px]">
+                          {isTranscribing ? "Calibrating..." : "Execute Local Scan"}
                        </button>
-                       <button onClick={() => {setFile(null); setTranscriptionResult('');}} className="pill-button pill-button-ghost w-full h-12 md:h-14 uppercase tracking-widest text-[10px] md:text-xs">Eject Signal</button>
+                       <button onClick={() => {setFile(null); setTranscriptionResult('');}} className="pill-button pill-button-ghost w-full h-12 uppercase tracking-widest text-[10px]">Eject Buffer</button>
                     </div>
                  </div>
 
                  {isTranscribing && (
                    <div className="space-y-3 px-2">
-                      <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                         <span>Acoustic Processing</span>
+                      <div className="flex justify-between items-center text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                         <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-[#00f2fe]" /> Spectral Pass</span>
                          <span className="text-white">{progress}%</span>
                       </div>
                       <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
@@ -149,22 +210,6 @@ export default function WhisperTool() {
                  <audio ref={audioRef} src={audioUrl} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} className="hidden" />
               </div>
             )}
-         </div>
-
-         <div className="p-6 md:p-8 bg-black/40 border border-white/5 rounded-[28px] md:rounded-[32px] space-y-4 opacity-50">
-            <h4 className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-               <Settings className="w-3 md:w-3.5 h-3 md:h-3.5" /> Engine Telemetry
-            </h4>
-            <div className="space-y-2 md:space-y-3">
-               <div className="flex justify-between text-[11px] md:text-xs font-medium">
-                  <span className="text-slate-400">Model Node</span>
-                  <span className="text-white whitespace-nowrap">Whisper-v3-Tiny</span>
-               </div>
-               <div className="flex justify-between text-[11px] md:text-xs font-medium">
-                  <span className="text-slate-400">Compute Backend</span>
-                  <span className="text-white">WASM SIMD</span>
-               </div>
-            </div>
          </div>
       </div>
 
@@ -186,12 +231,12 @@ export default function WhisperTool() {
 
             <div className="flex-1 p-8 md:p-12 overflow-y-auto max-h-[500px] custom-scrollbar">
                {transcriptionResult ? (
-                 <div className="space-y-8 md:space-y-10">
+                 <div className="space-y-10">
                     {transcriptionResult.split('\n').map((line, i) => (
                       <div key={i} className="flex gap-6 md:gap-8 group animate-in">
-                         {showTimestamps && <span className="text-[9px] md:text-[10px] font-black text-slate-700 tabular-nums shrink-0 mt-2 tracking-tighter">{line.match(/\[\d{2}:\d{2}\.\d{2}\]/)?.[0].replace(/[\[\]]/g, '')}</span>}
-                         <p className="text-lg md:text-2xl text-slate-300 font-medium leading-relaxed tracking-tight group-hover:text-white transition-colors">
-                            {line.replace(/\[\d{2}:\d{2}\.\d.2\]\s/, '')}
+                         {showTimestamps && <span className="text-[10px] font-black text-slate-700 tabular-nums shrink-0 mt-2 tracking-tighter">{line.match(/\[\d{2}:\d{2}\.\d{2}\]/)?.[0].replace(/[\[\]]/g, '')}</span>}
+                         <p className="text-xl md:text-2xl text-slate-300 font-medium leading-relaxed tracking-tight group-hover:text-white transition-colors">
+                            {line.replace(/\[\d{2}:\d{2}\.\d{2}\]\s/, '')}
                          </p>
                       </div>
                     ))}

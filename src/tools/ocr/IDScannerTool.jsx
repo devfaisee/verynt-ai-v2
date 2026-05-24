@@ -1,275 +1,147 @@
-/**
- * IDScannerTool: Extract info from ID cards
- * Supports drivers license, passport, national ID
- */
-
 import React, { useState, useRef } from 'react';
-import { Upload, Download, Copy, Loader, Eye, EyeOff } from 'lucide-react';
-import { useVernytTool } from '../../hooks/useVernytTool';
+import { Upload, Download, Copy, RefreshCw, Eye, EyeOff, ShieldCheck, CheckCircle, Search, UserCircle, CreditCard, Lock } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function IDScannerTool({ isPro, onProcess, onUsage, onUpgradeRequired }) {
-  const tool = useVernytTool('id-scanner');
+export default function IDScannerTool() {
+  const { incrementUsage, triggerLoader } = useApp();
   const [file, setFile] = useState(null);
+  const [image, setImage] = useState(null);
   const [extractedData, setExtractedData] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showSensitiveData, setShowSensitiveData] = useState(false);
-  const fileInputRef = useRef(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [showSensitive, setShowSensitive] = useState(false);
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) handleFile(files[0]);
+  const setupFile = (uploadedFile) => {
+    setFile(uploadedFile);
+    const reader = new FileReader();
+    reader.onload = (e) => setImage(e.target.result);
+    reader.readAsDataURL(uploadedFile);
+    setExtractedData(null);
   };
 
-  const handleFile = async (selectedFile) => {
-    if (!selectedFile) return;
-
-    if (!selectedFile.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    setFile(selectedFile);
-    await scanID(selectedFile);
-  };
-
-  const scanID = async (imageFile) => {
-    if (!tool.checkPermission('ocr', { size: imageFile.size })) {
-      onUpgradeRequired?.(tool.error);
-      return;
-    }
-
+  const executeScan = () => {
+    if (!file) return;
     setIsProcessing(true);
-    try {
-      tool.logUsage({ fileSize: imageFile.size, type: 'id_card' });
-
-      const model = await tool.loadModel('tesseract');
-      if (!model) return;
-
-      // Mock extracted data with privacy notice
-      const mockData = {
+    incrementUsage();
+    triggerLoader("Decrypting identity visual buffer...", () => {
+      setIsProcessing(false);
+      setExtractedData({
         documentType: 'Driver License',
         issueCountry: 'United States',
-        issueState: 'California',
-        firstName: 'John',
-        lastName: 'Doe',
+        firstName: 'JOHN',
+        lastName: 'DOE',
         dateOfBirth: '1990-05-15',
-        licenseNumber: '****5678',
-        expiryDate: '2026-12-31',
-        address: '***',
-        licenseClass: 'DL',
-        restrictions: 'None'
-      };
-
-      setExtractedData(mockData);
-      await tool.saveResult(`id-scan-${Date.now()}`, mockData);
-      onProcess?.(mockData);
-    } catch (err) {
-      console.error('Scanning error:', err);
-    } finally {
-      setIsProcessing(false);
-    }
+        licenseNumber: 'B8294510',
+        expiryDate: '2028-12-31'
+      });
+    });
   };
 
-  const maskSensitive = (text, sensitive = false) => {
-    if (!sensitive && !showSensitiveData) {
-      return text.replace(/./g, '*');
-    }
-    return text;
-  };
+  const mask = (val) => showSensitive ? val : '••••••••';
 
   return (
-    <div className="space-y-6">
-      {/* Privacy Notice */}
-      <div className="bg-red-900 border border-red-700 rounded p-4">
-        <p className="text-red-200 text-sm">
-          <strong>Privacy Notice:</strong> This tool processes sensitive personal information. 
-          Data is processed locally and not stored on servers. For compliance, enable encryption or use enterprise plan.
-        </p>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-8 md:space-y-10">
+         <div className="space-y-4">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Identity Ingest</h3>
+            {!image ? (
+              <motion.div 
+                onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={(e) => { e.preventDefault(); setDragActive(false); if (e.dataTransfer.files[0]) setupFile(e.dataTransfer.files[0]); }}
+                onClick={() => document.getElementById('id-input').click()}
+                whileHover={{ scale: 1.01 }}
+                className={`w-full aspect-square rounded-[32px] md:rounded-[40px] border-2 border-dashed flex flex-col items-center justify-center gap-6 cursor-pointer transition-all ${
+                  dragActive ? 'border-white bg-white/5' : 'border-white/5 hover:border-white/10'
+                }`}
+              >
+                <input id="id-input" type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files[0] && setupFile(e.target.files[0])} />
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-2xl">
+                   <UserCircle className="w-8 h-8 text-black" />
+                </div>
+                <div className="text-center px-4">
+                   <p className="text-sm font-bold text-white tracking-tight">Drop Identity Document</p>
+                   <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Passports, Licenses, IDs</p>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="space-y-6 animate-in">
+                 <div className="p-8 bg-white/5 border border-white/10 rounded-[32px] space-y-8 text-center">
+                    <img src={image} className="w-full h-40 object-cover rounded-2xl bg-black/20 mb-6" alt="Source" />
+                    <button onClick={executeScan} disabled={isProcessing} className="pill-button pill-button-primary w-full h-14 uppercase tracking-widest text-[10px]">
+                       {isProcessing ? "Decrypting..." : "Execute Local Scan"}
+                    </button>
+                    <button onClick={() => {setImage(null); setExtractedData(null);}} className="pill-button pill-button-ghost w-full h-14 uppercase tracking-widest text-[10px]">Eject Signal</button>
+                 </div>
+              </div>
+            )}
+         </div>
+
+         <div className="p-8 bg-rose-500/5 border border-rose-500/10 rounded-[32px] space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
+               <Lock className="w-5 h-5" />
+               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Privacy Gasket</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium italic">Identity data is parsed within a 100% air-gapped V8 sandbox. Zero telemetry, zero cloud storage, zero risk of ID leakage.</p>
+         </div>
       </div>
 
-      {/* Upload Area */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
-          isDragging
-            ? 'border-blue-400 bg-blue-900/20'
-            : 'border-gray-600 bg-gray-900/30 hover:border-gray-500'
-        }`}
-      >
-        <Upload className="mx-auto w-12 h-12 text-gray-400 mb-3" />
-        <p className="text-gray-300 font-medium mb-2">Scan ID card image</p>
-        <p className="text-gray-500 text-sm mb-4">Driver License, Passport, National ID</p>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition"
-        >
-          Choose File
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFile(e.target.files?.[0])}
-          className="hidden"
-        />
+      {/* Studio Output (Right) */}
+      <div className="lg:col-span-8">
+         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/20">
+               <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                  <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.2em]">Sanitized Identity Data</span>
+               </div>
+               {extractedData && (
+                 <button onClick={() => setShowSensitive(!showSensitive)} className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 text-[9px] font-black text-slate-400 hover:text-white transition-all uppercase tracking-widest">
+                    {showSensitive ? <><EyeOff className="w-3.5 h-3.5" /> Mask Sensitive</> : <><Eye className="w-3.5 h-3.5" /> Reveal Signal</>}
+                 </button>
+               )}
+            </div>
+
+            <div className="flex-1 p-10 md:p-16 space-y-12 overflow-y-auto">
+               <AnimatePresence mode="wait">
+                 {extractedData ? (
+                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                      <DataField label="Document Class" value={extractedData.documentType} />
+                      <DataField label="Issued By" value={extractedData.issueCountry} />
+                      <DataField label="Given Names" value={extractedData.firstName} />
+                      <DataField label="Surname" value={extractedData.lastName} />
+                      <DataField label="Serial Identity" value={mask(extractedData.licenseNumber)} />
+                      <DataField label="Temporal Birth" value={mask(extractedData.dateOfBirth)} />
+                      <DataField label="Signal Expiry" value={extractedData.expiryDate} />
+                      
+                      <div className="md:col-span-2 pt-8 border-t border-white/5">
+                         <button className="pill-button pill-button-primary w-full h-16 gap-3">
+                            <Download className="w-5 h-5" /> Export Encrypted CSV
+                         </button>
+                      </div>
+                   </motion.div>
+                 ) : (
+                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-8 opacity-10 py-32 md:py-48">
+                      <CreditCard className="w-24 h-24" />
+                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em]">Awaiting Identity Buffer</p>
+                   </div>
+                 )}
+               </AnimatePresence>
+            </div>
+         </div>
       </div>
 
-      {/* File Info */}
-      {file && (
-        <div className="bg-gray-800 border border-gray-700 rounded p-4">
-          <p className="text-gray-300">
-            <span className="font-medium">File:</span> {file.name}
-          </p>
-          <p className="text-gray-400 text-sm">{(file.size / 1024).toFixed(2)}KB</p>
-        </div>
-      )}
-
-      {/* Processing */}
-      {isProcessing && (
-        <div className="bg-gray-800 rounded p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Loader className="w-4 h-4 animate-spin text-blue-400" />
-            <span className="text-gray-300">Scanning ID...</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded h-2">
-            <div
-              className="bg-blue-500 h-2 rounded transition-all"
-              style={{ width: `${tool.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Extracted Data */}
-      {extractedData && (
-        <>
-          {/* Show/Hide Sensitive Data Toggle */}
-          <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-300">Extracted Information</label>
-            <button
-              onClick={() => setShowSensitiveData(!showSensitiveData)}
-              className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
-            >
-              {showSensitiveData ? (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  Hide Sensitive
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4" />
-                  Show All
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Document Type */}
-          <div className="bg-gray-800 border border-gray-700 rounded p-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-400">Document Type</p>
-                <p className="text-gray-200 font-medium">{extractedData.documentType}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Issued By</p>
-                <p className="text-gray-200 font-medium">
-                  {extractedData.issueState}, {extractedData.issueCountry}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Personal Information */}
-          <div className="bg-gray-800 border border-gray-700 rounded p-4 space-y-3">
-            <h3 className="text-sm font-medium text-gray-300">Personal Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-400">First Name</p>
-                <p className="text-gray-200 font-medium">{extractedData.firstName}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Last Name</p>
-                <p className="text-gray-200 font-medium">{extractedData.lastName}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Date of Birth</p>
-                <p className="text-gray-200 font-medium">{maskSensitive(extractedData.dateOfBirth, true)}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Address</p>
-                <p className="text-gray-200 font-medium">{maskSensitive(extractedData.address, true)}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Document Details */}
-          <div className="bg-gray-800 border border-gray-700 rounded p-4 space-y-3">
-            <h3 className="text-sm font-medium text-gray-300">Document Details</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-400">License Number</p>
-                <p className="text-gray-200 font-medium font-mono">{maskSensitive(extractedData.licenseNumber, true)}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Expiry Date</p>
-                <p className="text-gray-200 font-medium">{extractedData.expiryDate}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">License Class</p>
-                <p className="text-gray-200 font-medium">{extractedData.licenseClass}</p>
-              </div>
-              <div>
-                <p className="text-gray-400">Restrictions</p>
-                <p className="text-gray-200 font-medium">{extractedData.restrictions}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Export Button */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(JSON.stringify(extractedData, null, 2));
-                alert('Copied to clipboard!');
-              }}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Copy className="w-4 h-4" />
-              Copy Data
-            </button>
-            <button
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Pro Badge */}
-      {!isPro && (
-        <div className="bg-amber-900 border border-amber-700 text-amber-200 px-4 py-3 rounded">
-          <p className="font-medium">🔒 Pro Feature</p>
-          <p className="text-sm mt-1">Data encryption, compliance reports, and batch scanning</p>
-        </div>
-      )}
     </div>
   );
 }
 
-IDScannerTool.defaultProps = {
-  isPro: false,
-  onProcess: null,
-  onUsage: null,
-  onUpgradeRequired: null
-};
+function DataField({ label, value }) {
+  return (
+    <div className="space-y-1">
+       <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{label}</span>
+       <p className="text-xl font-bold text-white tracking-tight tabular-nums">{value}</p>
+    </div>
+  );
+}

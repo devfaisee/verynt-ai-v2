@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, RefreshCw, Copy, Download, Wand2, ShieldCheck, Briefcase, UserCircle, Mail, LayoutGrid, Type, AlignLeft, CheckCircle } from 'lucide-react';
+import { PenTool, RefreshCw, Copy, Download, Wand2, ShieldCheck, Briefcase, UserCircle, Mail, LayoutGrid, Type, AlignLeft, CheckCircle, Sliders, Sparkles, Target, Zap } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -7,21 +7,26 @@ export default function ScribbleTool() {
   const { incrementUsage, triggerLoader } = useApp();
   const [text, setText] = useState('');
   const [result, setResult] = useState('');
-  const [mode, setMode] = useState('rephrase'); // 'rephrase', 'resume', 'cover-letter'
+  const [mode, setMode] = useState('rephrase'); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // --- MICRO CONTROLS ---
+  const [creativity, setCreativity] = useState(0.7); // temperature
+  const [logicDepth, setLogicDepth] = useState('standard'); // standard, extreme
+  const [maxTokens, setMaxTokens] = useState(256);
 
   const processText = () => {
     if (!text.trim()) return;
     setIsProcessing(true);
     incrementUsage();
-    triggerLoader(`Applying ${mode} neural logic...`, () => {
+    triggerLoader(`Synthesizing ${mode} signal with ${creativity} temperature...`, () => {
       setIsProcessing(false);
       
       const outputs = {
-        rephrase: "Optimized Sequence: " + text.split(' ').reverse().join(' ') + " [Neural Rephrasing Logic Applied Locally]",
-        resume: "EXPERIENCE\nSenior Software Architect | Verynt Studio\n- Orchestrated the migration to local-first browser AI.\n- Built a high-fidelity glassmorphic design system using Tailwind v4.\n- Integrated multi-modal neural engines for zero-server inference.",
-        'cover-letter': "Dear Hiring Committee,\n\nI am writing to express my intense interest in the AI Architect position. Having pioneered local-first intelligence at Verynt, I bring a unique perspective on privacy-first software engineering and hardware-accelerated browser environments..."
+        rephrase: "Optimized Sequence: " + text.split(' ').reverse().join(' ') + ` [Entropy: ${creativity}]`,
+        resume: "EXPERIENCE\nSenior Software Architect | Verynt Studio\n- Orchestrated local V8 isolates.\n- Optimized WebGPU buffers for ${creativity * 100}% efficiency.",
+        'cover-letter': "Dear Hiring Committee,\n\nI am writing to express interest in the AI position. Having validated the local-first standard at Verynt, I bring a unique perspective on secure neural computing..."
       };
 
       setResult(outputs[mode] || outputs.rephrase);
@@ -32,9 +37,52 @@ export default function ScribbleTool() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
       
       {/* Studio Controls (Left) */}
-      <div className="lg:col-span-4 space-y-8 md:space-y-10">
+      <div className="lg:col-span-4 space-y-8">
+         
+         {/* MICRO CONTROLS PANEL */}
          <div className="space-y-4">
-            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Writer Module</h3>
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
+               <Sliders className="w-3.5 h-3.5" /> Generative logic
+            </h3>
+            <div className="glass-card p-6 space-y-6">
+               <div className="space-y-4">
+                  <div className="flex justify-between items-center text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                     <span>Creativity (Temp)</span>
+                     <span className="text-[#bf5af2]">{creativity}</span>
+                  </div>
+                  <input type="range" min="0" max="1.5" step="0.1" value={creativity} onChange={(e) => setCreativity(parseFloat(e.target.value))} className="w-full h-1 bg-white/5 rounded-full appearance-none accent-white" />
+               </div>
+
+               <div className="space-y-3 pt-4 border-t border-white/5">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <Target className="w-3 h-3" /> Recursive Depth
+                  </label>
+                  <div className="flex bg-white/5 rounded-xl p-1 border border-white/5">
+                     {['standard', 'extreme'].map(d => (
+                       <button key={d} onClick={() => setLogicDepth(d)} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${logicDepth === d ? 'bg-white text-black shadow-xl' : 'text-slate-500'}`}>{d}</button>
+                     ))}
+                  </div>
+               </div>
+
+               <div className="space-y-3 pt-4 border-t border-white/5">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                     <Zap className="w-3 h-3" /> Max signal Length
+                  </label>
+                  <select 
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-bold text-white outline-none"
+                  >
+                     <option value={128}>128 Tokens (Snippets)</option>
+                     <option value={256}>256 Tokens (Standard)</option>
+                     <option value={512}>512 Tokens (Deep Form)</option>
+                  </select>
+               </div>
+            </div>
+         </div>
+
+         <div className="space-y-4">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Module Config</h3>
             <div className="glass-card p-6 md:p-8 space-y-2">
                {[
                  { id: 'rephrase', name: 'Smart Rephrase', icon: Wand2 },
@@ -51,65 +99,52 @@ export default function ScribbleTool() {
                  </button>
                ))}
             </div>
-         </div>
-
-         <div className="space-y-4 flex flex-col h-full">
-            <h3 className="text-[10px] md:text-xs font-black text-slate-700 uppercase tracking-[0.3em]">Source signal</h3>
-            <div className="flex-1 min-h-[250px] md:min-h-[350px] relative group">
-               <textarea 
-                 value={text} 
-                 onChange={(e) => setText(e.target.value)} 
-                 className="w-full h-full bg-black/40 border border-white/5 rounded-[28px] md:rounded-[32px] p-6 md:p-8 font-medium text-sm md:text-base text-slate-400 focus:outline-none focus:border-white/10 transition-all resize-none italic"
-                 placeholder="Enter raw sequence..."
-               />
-            </div>
-            <button 
-              onClick={processText}
-              disabled={!text.trim() || isProcessing}
-              className="pill-button pill-button-primary w-full h-12 md:h-14 mt-2 uppercase tracking-widest text-[10px] md:text-xs"
-            >
-              {isProcessing ? "Synthesizing..." : "Execute Logic"}
-            </button>
+            
+            <button onClick={processText} disabled={!text.trim() || isProcessing} className="pill-button pill-button-primary w-full h-14 uppercase tracking-widest text-[10px]">Execute Writer</button>
          </div>
       </div>
 
       {/* Studio Output (Right) */}
       <div className="lg:col-span-8">
-         <div className="h-full min-h-[450px] md:min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl">
-            <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <Type className="w-5 h-5 text-slate-400" />
-                  <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.2em]">Neural Output</span>
-               </div>
+         <div className="h-full min-h-[450px] md:min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[32px] md:rounded-[40px] overflow-hidden shadow-2xl relative">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Neural Result</span>
                {result && (
-                 <div className="flex gap-2">
-                    <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                       {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                 </div>
+                 <button onClick={() => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                    {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                 </button>
                )}
             </div>
 
-            <div className="flex-1 p-8 md:p-12 relative overflow-y-auto max-h-[500px] custom-scrollbar">
-               <AnimatePresence mode="wait">
-                 {result ? (
-                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full text-lg md:text-2xl text-slate-300 font-medium leading-relaxed whitespace-pre-wrap select-all italic">
-                      {result}
-                   </motion.div>
-                 ) : (
-                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-10 py-24 md:py-32">
-                      <PenTool className="w-16 md:w-20 h-16 md:h-20" />
-                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-center">Awaiting Studio Directive</p>
-                   </div>
-                 )}
-               </AnimatePresence>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 divide-x divide-white/5 h-full">
+               <div className="p-10 space-y-6">
+                  <h4 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em]">Source stream</h4>
+                  <textarea 
+                    value={text} 
+                    onChange={(e) => setText(e.target.value)} 
+                    className="w-full h-full bg-transparent border-none text-slate-500 font-medium text-lg focus:outline-none resize-none leading-relaxed italic"
+                    placeholder="Inject raw signal..."
+                  />
+               </div>
+               <div className="p-10 space-y-6 bg-white/[0.01]">
+                  <h4 className="text-[10px] font-black text-[#bf5af2] uppercase tracking-[0.3em]">Forge result</h4>
+                  <div className="w-full h-full text-slate-200 font-serif text-2xl leading-relaxed italic select-all overflow-y-auto">
+                     {result || (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-6 opacity-10">
+                           <PenTool className="w-20 h-20" />
+                           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-center">Awaiting Directives</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
             </div>
 
-            <div className="p-6 md:p-8 bg-white/[0.01] border-t border-white/5">
-               <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 opacity-50 shrink-0" />
-                  Processed locally • 0% Cloud Footprint
+            <div className="p-8 bg-white/[0.01] border-t border-white/5 flex justify-between items-center text-[9px] font-black text-slate-600 uppercase tracking-widest">
+               <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 opacity-50" />
+                  Signal remains in local V8 isolate
                </div>
+               <button className="hover:text-white transition-colors">Export signal</button>
             </div>
          </div>
       </div>

@@ -32,12 +32,12 @@ export default function ScaleTool() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
       
       {/* Studio Controls (Left) */}
-      <div className="lg:col-span-4 space-y-10">
+      <div className="lg:col-span-4 space-y-8 md:space-y-10">
          <div className="space-y-4">
-            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Resolution Profile</h3>
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Resolution Profile</h3>
             <div className="glass-card p-8 space-y-8">
                <div className="space-y-4">
                   <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center">Upscale Factor</p>

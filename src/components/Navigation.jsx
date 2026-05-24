@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext';
 import { motion } from 'framer-motion';
 
 export default function Navigation() {
-  const { isOffline, setIsOffline, setIsPricingOpen } = useApp();
+  const { isOffline, setIsOffline, setIsPricingOpen, usageCount } = useApp();
   const location = useLocation();
 
   return (
@@ -42,7 +42,11 @@ export default function Navigation() {
           </Link>
 
           <button 
-            onClick={() => setIsOffline(!isOffline)}
+            onClick={() => {
+              const next = !isOffline;
+              setIsOffline(next);
+              if (next) setIsPrivacySandbox(true);
+            }}
             className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest transition-all shrink-0 ${
               isOffline ? 'text-rose-500 bg-rose-500/10' : 'text-slate-400 hover:text-white'
             }`}
@@ -53,6 +57,14 @@ export default function Navigation() {
         </div>
 
         <div className="h-6 w-[1px] bg-white/10 mx-1 sm:mx-2 shrink-0" />
+
+        {/* Sandbox Credits Meter */}
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-black tracking-widest uppercase shrink-0">
+          <Shield className="w-2.5 h-2.5 animate-pulse" />
+          <span>{Math.max(0, 5 - usageCount)} / 5 Sandbox Credits</span>
+        </div>
+
+        <div className="hidden md:block h-6 w-[1px] bg-white/10 mx-1 shrink-0" />
 
         {/* Support CTA */}
         <button 

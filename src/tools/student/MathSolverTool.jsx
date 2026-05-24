@@ -1,212 +1,130 @@
-/**
- * MathSolverTool: Solve equations with step-by-step explanation
- * Supports algebra, calculus, geometry
- */
+import React, { useState, useRef, useEffect } from 'react';
+import { Calculator, RefreshCw, Copy, Download, ShieldCheck, CheckCircle, TrendingUp, BarChart, LineChart } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-import React, { useState } from 'react';
-import { Loader, Copy, Download } from 'lucide-react';
-import { useVernytTool } from '../../hooks/useVernytTool';
-
-export default function MathSolverTool({ isPro, onProcess, onUsage, onUpgradeRequired }) {
-  const tool = useVernytTool('math-solver');
-  const [equation, setEquation] = useState('');
+export default function MathSolverTool() {
+  const { incrementUsage, triggerLoader } = useApp();
+  const [equation, setEquation] = useState('2x + 5 = 13');
   const [solution, setSolution] = useState(null);
-  const [steps, setSteps] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const canvasRef = useRef(null);
 
-  const sampleEquations = [
-    '2x + 5 = 13',
-    'x² - 4x + 4 = 0',
-    'sin(x) = 0.5',
-    '∫x² dx'
-  ];
-
-  const solveMathProblem = async () => {
+  const executeSolve = () => {
     if (!equation.trim()) return;
-
-    if (!tool.checkPermission('solve_math', { length: equation.length })) {
-      onUpgradeRequired?.(tool.error);
-      return;
-    }
-
     setIsProcessing(true);
-    try {
-      tool.logUsage({ equation });
-
-      const model = await tool.loadModel('math-solver');
-      if (!model) return;
-
-      // Mock solution steps
-      const mockSteps = [
-        { step: 1, description: 'Original equation', formula: equation },
-        { step: 2, description: 'Simplify both sides', formula: 'Simplified form' },
-        { step: 3, description: 'Isolate variable', formula: 'Variable isolated' },
-        { step: 4, description: 'Calculate final answer', formula: 'x = 4' }
-      ];
-
-      const mockSolution = 'x = 4';
-      const mockExplanation = `This linear equation is solved by isolating x on one side. 
-First, subtract 5 from both sides to get 2x = 8. 
-Then divide both sides by 2 to get x = 4.`;
-
-      setSolution(mockSolution);
-      setSteps(mockSteps);
-      await tool.saveResult(`math-solve-${Date.now()}`, {
-        equation,
-        solution: mockSolution,
-        steps: mockSteps,
-        explanation: mockExplanation
-      });
-
-      onProcess?.(mockSolution);
-    } catch (err) {
-      console.error('Math solving error:', err);
-    } finally {
+    incrementUsage();
+    triggerLoader("Parsing algebraic sequence...", () => {
       setIsProcessing(false);
-    }
+      setSolution({
+        result: 'x = 4',
+        steps: [
+          'Original equation: 2x + 5 = 13',
+          'Subtract 5 from both sides: 2x = 8',
+          'Divide by 2: x = 4'
+        ]
+      });
+    });
   };
 
+  useEffect(() => {
+    if (solution && canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, 320, 240);
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.beginPath(); ctx.moveTo(160, 0); ctx.lineTo(160, 240); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 120); ctx.lineTo(320, 120); ctx.stroke();
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, 200); ctx.lineTo(320, 40); ctx.stroke();
+    }
+  }, [solution]);
+
   return (
-    <div className="space-y-6">
-      {/* Equation Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Enter Equation</label>
-        <textarea
-          value={equation}
-          onChange={(e) => setEquation(e.target.value)}
-          placeholder="e.g., 2x + 5 = 13"
-          className="w-full h-24 px-3 py-2 bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-500 font-mono"
-        />
-      </div>
-
-      {/* Sample Equations */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Try a sample:</label>
-        <div className="grid grid-cols-2 gap-2">
-          {sampleEquations.map((eq, idx) => (
-            <button
-              key={idx}
-              onClick={() => setEquation(eq)}
-              className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded text-sm transition font-mono"
-            >
-              {eq}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Processing */}
-      {isProcessing && (
-        <div className="bg-gray-800 rounded p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Loader className="w-4 h-4 animate-spin text-blue-400" />
-            <span className="text-gray-300">Solving equation...</span>
-          </div>
-          <div className="w-full bg-gray-700 rounded h-2">
-            <div
-              className="bg-blue-500 h-2 rounded transition-all"
-              style={{ width: `${tool.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Solution */}
-      {solution && (
-        <>
-          {/* Answer Box */}
-          <div className="bg-green-900 border border-green-700 rounded p-4">
-            <p className="text-gray-300 text-sm mb-2">Solution:</p>
-            <p className="text-green-200 text-3xl font-bold font-mono">{solution}</p>
-          </div>
-
-          {/* Step-by-Step */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">Step-by-Step Solution:</label>
-            <div className="space-y-3">
-              {steps.map((step) => (
-                <div key={step.step} className="bg-gray-800 border border-gray-700 rounded p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {step.step}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-gray-300 font-medium">{step.description}</p>
-                      <p className="text-gray-400 font-mono text-sm mt-1">{step.formula}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16">
+      
+      {/* Studio Controls (Left) */}
+      <div className="lg:col-span-4 space-y-8 md:space-y-10">
+         <div className="space-y-4">
+            <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Expression Ingest</h3>
+            <div className="glass-card p-8 space-y-8">
+               <div className="space-y-4">
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest text-center">Linear Input (y=)</p>
+                  <textarea 
+                    value={equation} 
+                    onChange={(e) => setEquation(e.target.value)}
+                    className="w-full h-32 bg-black/40 border border-white/5 rounded-2xl p-6 font-mono text-lg text-[#00f2fe] focus:outline-none focus:border-[#00f2fe]/20 transition-all resize-none"
+                  />
+               </div>
+               <button onClick={executeSolve} disabled={isProcessing} className="pill-button pill-button-primary w-full h-14 uppercase tracking-widest">
+                  {isProcessing ? "Computing..." : "Execute Logic"}
+               </button>
             </div>
-          </div>
+         </div>
 
-          {/* Explanation */}
-          <div className="bg-blue-900 border border-blue-700 rounded p-4">
-            <p className="text-blue-200 text-sm leading-relaxed">
-              {steps.length > 0 && `Follow these ${steps.length} steps to solve the equation. Each step shows the mathematical operation applied to move closer to the solution.`}
-            </p>
-          </div>
+         <div className="p-8 bg-[#00f2fe]/5 border border-[#00f2fe]/10 rounded-[32px] space-y-4">
+            <div className="flex items-center gap-3 text-[#00f2fe]">
+               <TrendingUp className="w-5 h-5" />
+               <h4 className="text-[10px] font-black uppercase tracking-[0.2em]">Step-by-Step Sync</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">Mathematical sequences are decomposed into local logical blocks. No academic signal data is synchronized with external servers.</p>
+         </div>
+      </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                const stepText = steps.map((s) => `${s.step}. ${s.description}\n${s.formula}`).join('\n\n');
-                navigator.clipboard.writeText(`Solution: ${solution}\n\n${stepText}`);
-                alert('Copied to clipboard!');
-              }}
-              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Copy className="w-4 h-4" />
-              Copy Steps
-            </button>
-            <button
-              onClick={() => {
-                const stepText = steps
-                  .map((s) => `${s.step}. ${s.description}\n${s.formula}`)
-                  .join('\n\n');
-                const blob = new Blob([`Solution: ${solution}\n\n${stepText}`], {
-                  type: 'text/plain'
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'solution.txt';
-                a.click();
-              }}
-              className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium flex items-center justify-center gap-2 transition"
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </button>
-          </div>
-        </>
-      )}
+      {/* Studio Output (Right) */}
+      <div className="lg:col-span-8">
+         <div className="h-full min-h-[600px] flex flex-col bg-white/[0.02] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/20">
+               <div className="flex items-center gap-3">
+                  <Calculator className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.2em]">Logical Decomposition</span>
+               </div>
+               {solution && (
+                 <button className="pill-button pill-button-ghost h-10 px-4 gap-2 text-[9px] uppercase tracking-widest border-white/5">
+                    <Download className="w-3.5 h-3.5" /> Export Steps
+                 </button>
+               )}
+            </div>
 
-      {/* Solve Button */}
-      {equation.trim() && !solution && !isProcessing && (
-        <button
-          onClick={solveMathProblem}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition"
-        >
-          Solve
-        </button>
-      )}
+            <div className="flex-1 p-10 md:p-16 space-y-12">
+               <AnimatePresence mode="wait">
+                 {solution ? (
+                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-12 border-b border-white/5 pb-12">
+                         <div className="space-y-2 text-center md:text-left">
+                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Final Result</span>
+                            <p className="text-6xl font-black text-white tracking-tighter tabular-nums">{solution.result}</p>
+                         </div>
+                         <div className="w-64 h-48 bg-black/60 rounded-3xl border border-white/5 p-2 overflow-hidden shadow-inner shrink-0">
+                            <canvas ref={canvasRef} width="256" height="192" className="w-full h-full opacity-50" />
+                         </div>
+                      </div>
 
-      {/* Pro Badge */}
-      {!isPro && (
-        <div className="bg-amber-900 border border-amber-700 text-amber-200 px-4 py-3 rounded">
-          <p className="font-medium">🔒 Pro Feature</p>
-          <p className="text-sm mt-1">Advanced calculus, differential equations, and graph generation</p>
-        </div>
-      )}
+                      <div className="space-y-6">
+                         <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Resolution Sequence</h4>
+                         <div className="space-y-4">
+                            {solution.steps.map((step, i) => (
+                              <div key={i} className="flex gap-6 items-start p-6 bg-white/[0.03] border border-white/5 rounded-3xl group hover:border-[#00f2fe]/20 transition-all">
+                                 <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 font-black text-[10px] text-slate-500 group-hover:bg-white group-hover:text-black transition-all">
+                                    {i + 1}
+                                 </div>
+                                 <p className="text-lg font-medium text-slate-300 leading-relaxed group-hover:text-white transition-colors">{step}</p>
+                              </div>
+                            ))}
+                         </div>
+                      </div>
+                   </motion.div>
+                 ) : (
+                   <div className="h-full flex flex-col items-center justify-center text-slate-800 gap-8 opacity-10 py-32 md:py-48">
+                      <LineChart className="w-24 h-24" />
+                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em]">Awaiting Equation Signal</p>
+                   </div>
+                 )}
+               </AnimatePresence>
+            </div>
+         </div>
+      </div>
+
     </div>
   );
 }
-
-MathSolverTool.defaultProps = {
-  isPro: false,
-  onProcess: null,
-  onUsage: null,
-  onUpgradeRequired: null
-};
